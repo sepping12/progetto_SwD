@@ -3,9 +3,13 @@
 ## Description
 The Backend eCommerce Project is a robust backend system for an online shopping platform. It handles essential functionalities like user authentication, product management, order processing, and data storage in a MySQL database. This project serves as the backbone of an eCommerce website.
 
+Built with modern DevOps practices including CI/CD pipelines, Docker containerization, code coverage analysis, and security scanning.
+
 ## Table of Contents
 
 - [Installation](#installation)
+- [CI/CD & Build](#cicd--build)
+- [Docker](#docker)
 - [Technologies Used](#technologies-used)
 - [Features](#features)
 - [Usage](#usage)
@@ -20,34 +24,120 @@ To get started with our E-commerce Backend App, follow these steps:
    ```bash
    git clone https://github.com/Shittu24/ecommerce-backend.git
    cd ecommerce-backend
+   ```
 
-2. **Set up MySQL Database:**
+2. **Set up MySQL Database (Optional - H2 used by default):**
    - Ensure you have MySQL installed on your system.
    - Create a MySQL database for the application.
    - Update the database configuration in `src/main/resources/application.properties` with your database settings:
   
-     ```bash
+     ```properties
      spring.datasource.url=jdbc:mysql://localhost:3306/your_database_name
      spring.datasource.username=your_username
      spring.datasource.password=your_password
+     ```
 
 3. **Build and run the application:**
 
    ```bash
    ./mvnw clean install
    ./mvnw spring-boot:run
+   ```
 
-The application should now be up and running.
+The application should now be up and running on `http://localhost:8080`.
 
+## CI/CD & Build
 
+### Local Build
+```bash
+mvn clean install
+```
+
+**Requirements**:
+- Java 17+ (Temurin JDK)
+- Maven 3.9+
+
+**Output**: 
+- `target/spring-boot-ecommerce-0.0.1-SNAPSHOT.jar`
+- JaCoCo coverage report: `target/site/jacoco/index.html`
+
+### GitHub Actions Workflows
+
+#### 1. **ci.yml** - Continuous Integration
+Triggered on: `push` to main/develop, `pull_request`
+
+**What it does**:
+- Builds the project with Maven
+- Runs all tests (JUnit 5)
+- Generates JaCoCo coverage reports
+- Comments PRs with coverage metrics
+- (Optional) Scans code with SonarCloud
+
+**Required Secrets** (optional):
+- `SONAR_TOKEN` - for SonarCloud integration
+
+#### 2. **build.yml** - Docker Build & Push
+Triggered on: `push` to main/develop/tags, `pull_request`
+
+**What it does**:
+- Builds Docker image using multi-stage build
+- Pushes to DockerHub with semantic versioning
+- Tags: `latest`, branch name, semantic version, commit SHA
+- Caches layers for faster builds
+
+**Required Secrets**:
+- `DOCKER_USERNAME` - your DockerHub username
+- `DOCKER_PASSWORD` - your DockerHub password
+
+**To configure**, add secrets in GitHub repository settings:
+```
+Settings > Secrets and variables > Actions > New repository secret
+```
+
+## Docker
+
+### Build Image Locally
+```bash
+docker build -t ecommerce-api:latest .
+```
+
+### Run Container
+```bash
+docker run -p 8080:8080 ecommerce-api:latest
+```
+
+### Docker Compose (Full Stack)
+```bash
+docker-compose up
+```
+
+This starts the Spring Boot application with:
+- Application on port 8080
+- H2 in-memory database
+- Health checks enabled
+- Non-root security context
+
+**Dockerfile Features**:
+- Multi-stage build (Maven builder → Runtime)
+- Eclipse Temurin 21 Alpine (lightweight, 50MB+)
+- Health checks via Spring Actuator
+- Non-root user (appuser) for security
+- Optimized layer caching
 
 ## Technologies Used
-- **Java**: The primary programming language.
-- **Spring Boot**: A powerful framework for building Java applications.
-- **MySQL**: The relational database used for data storage.
-- **Lombok**: Generates boilerplate code, such as getters, setters, constructors, and more through annotations.
-- **Spring Data JPA**: Simplifies database operations.
-- **Spring MVC**: Handles HTTP requests and responses.
+- **Java**: 17 - Primary programming language
+- **Spring Boot**: 3.1.3 - Framework for building Java applications
+- **Spring Data JPA**: Database operations
+- **Spring Data REST**: RESTful APIs
+- **Spring Boot Actuator**: Health checks and monitoring
+- **MySQL**: Relational database (optional)
+- **H2**: In-memory database (default)
+- **Lombok**: Boilerplate code generation
+- **Spring MVC**: HTTP request handling
+- **JUnit 5**: Testing framework
+- **JaCoCo**: Code coverage analysis
+- **Docker**: Containerization
+- **Maven**: Build automation
 - **Maven**: Dependency management.
 
 ## Features

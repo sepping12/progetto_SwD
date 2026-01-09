@@ -1,8 +1,41 @@
-FROM maven:3.8.5-openjdk-17 AS build
-COPY . .
+# Stage 1: Build stage
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
+
+WORKDIR /build
+
+# Copy pom.xml and download dependencies
+COPY pom.xml .
+RUN mvn dependency:resolve
+
+# Copy source code
+COPY src ./src
+
+# Build the application
 RUN mvn clean package -DskipTests
 
-FROM openjdk:17.0.1-jdk-slim
-COPY --from=build /target/spring-boot-ecommerce-0.0.1-SNAPSHOT.jar demo.jar
-EXPOSE 8000
-ENTRYPOINT ["java","-jar","demo.jar"]
+# Stage 2: Runtime stage
+FROM eclipse-temurin:21-jre-alpine
+
+# Create non-root user for security
+RUN addgroup -S appuser && adduser -S appuser -G appuser
+
+WORKDIR /app
+
+# Copy built JAR from builder stage
+COPY --from=builder /build/target/spring-boot-ecommerce-0.0.1-SNAPSHOT.jar app.jar
+
+# Change ownership to non-root user
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+
+# Run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]
