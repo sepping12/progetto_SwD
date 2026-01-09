@@ -35,6 +35,12 @@ jobs:
           java-version: '17'
           cache: maven
 
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Build (clean verify)
+        run: ./mvnw -B clean verify
+        
       - name: Wait for MySQL
         run: |
           for i in {1..30}; do
