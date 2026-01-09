@@ -319,4 +319,83 @@ class CheckoutServiceImplementationTest {
         assertEquals(originalTotal, savedOrder.getTotalPrice());
         assertEquals(originalQuantity, savedOrder.getTotalQuantity());
     }
+
+    @Test
+    @DisplayName("Should verify customer is added to repository during placeOrder")
+    void testVerifyCustomerRepositoryCalled() {
+        // Arrange
+        when(customerRepository.findByEmail(newCustomer.getEmail())).thenReturn(null);
+        when(customerRepository.save(any(Customer.class))).thenReturn(newCustomer);
+
+        // Act
+        checkoutService.placeOrder(purchase);
+
+        // Assert
+        verify(customerRepository, times(1)).findByEmail(any());
+        verify(customerRepository, times(1)).save(any(Customer.class));
+    }
+
+    @Test
+    @DisplayName("Should NOT duplicate existing customer in repository")
+    void testExistingCustomerNotDuplicated() {
+        // Arrange
+        Customer foundCustomer = new Customer();
+        foundCustomer.setId(100L);
+        foundCustomer.setEmail(newCustomer.getEmail());
+        when(customerRepository.findByEmail(newCustomer.getEmail())).thenReturn(foundCustomer);
+        when(customerRepository.save(any(Customer.class))).thenReturn(foundCustomer);
+
+        // Act
+        checkoutService.placeOrder(purchase);
+
+        // Assert - Should save the existing customer
+        ArgumentCaptor<Customer> customerCaptor = ArgumentCaptor.forClass(Customer.class);
+        verify(customerRepository).save(customerCaptor.capture());
+        Customer savedCustomer = customerCaptor.getValue();
+        assertNotNull(savedCustomer.getId());
+    }
+
+    @Test
+    @DisplayName("Should handle order with single item")
+    void testPlaceOrderWithSingleItem() {
+        // Arrange
+        Set<OrderItem> singleItem = new HashSet<>();
+        OrderItem item = new OrderItem();
+        item.setQuantity(1);
+        item.setUnitPrice(new BigDecimal("99.99"));
+        singleItem.add(item);
+        purchase.setOrderItems(singleItem);
+        
+        when(customerRepository.findByEmail(anyString())).thenReturn(null);
+        when(customerRepository.save(any(Customer.class))).thenReturn(newCustomer);
+
+        // Act
+        PurchaseResponse response = checkoutService.placeOrder(purchase);
+
+        // Assert
+        assertNotNull(response);
+        assertNotNull(response.getOrderTrackingNumber());
+    }
+
+    @Test
+    @DisplayName("Should maintain customer relationship when saving order")
+    void testCustomerOrderRelationshipPreserved() {
+        // Arrange
+        when(customerRepository.findByEmail(anyString())).thenReturn(null);
+        when(customerRepository.save(any(Customer.class))).thenReturn(newCustomer);
+
+        // Act
+        checkoutService.placeOrder(purchase);
+
+        // Assert
+        ArgumentCaptor<Customer> customerCaptor = ArgumentCaptor.forClass(Customer.class);
+        verify(customerRepository).save(customerCaptor.capture());
+        Customer savedCustomer = customerCaptor.getValue();
+        
+        // Verify the order is linked to the customer
+        assertNotNull(savedCustomer.getOrders());
+        assertFalse(savedCustomer.getOrders().isEmpty());
+    }
 }
+
+
