@@ -17,7 +17,7 @@ jobs:
           MYSQL_PASSWORD: ecom_pass
           MYSQL_ROOT_PASSWORD: root_pass
         ports:
-          - 3306:3306
+          - 3307:3306
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -proot_pass"
           --health-interval=10s
@@ -38,9 +38,6 @@ jobs:
       - name: Make mvnw executable
         run: chmod +x mvnw
 
-      - name: Build (clean verify)
-        run: ./mvnw -B clean verify
-        
       - name: Wait for MySQL
         run: |
           for i in {1..30}; do
@@ -54,5 +51,12 @@ jobs:
           echo "MySQL did not start in time"
           exit 1
 
-      - name: Build (tests included)
+      - name: Build (clean verify)
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3307/ecommerce_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+          SPRING_DATASOURCE_USERNAME: ecom_user
+          SPRING_DATASOURCE_PASSWORD: ecom_pass
+          # se nel codice usi placeholder ${allowed.origins} o ${spring.data.rest.base-path}
+          ALLOWED_ORIGINS: http://localhost:4200
+          SPRING_DATA_REST_BASE_PATH: /api
         run: ./mvnw -B clean verify
