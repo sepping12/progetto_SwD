@@ -17,7 +17,7 @@ jobs:
           MYSQL_PASSWORD: ecom_pass
           MYSQL_ROOT_PASSWORD: root_pass
         ports:
-          - 3307:3306
+          - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -proot_pass"
           --health-interval=10s
@@ -53,7 +53,7 @@ jobs:
 
       - name: Build (clean verify)
         env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3307/ecommerce_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/ecommerce_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
           SPRING_DATASOURCE_USERNAME: ecom_user
           SPRING_DATASOURCE_PASSWORD: ecom_pass
           # se nel codice usi placeholder ${allowed.origins} o ${spring.data.rest.base-path}
