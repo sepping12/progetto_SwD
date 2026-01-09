@@ -103,6 +103,49 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.1.2</version>
 			</plugin>
+
+			<!-- PITest - Mutation Testing Plugin -->
+			<plugin>
+				<groupId>org.pitest</groupId>
+				<artifactId>pitest-maven</artifactId>
+				<version>1.14.4</version>
+				<dependencies>
+					<!-- JUnit 5 plugin for PITest -->
+					<dependency>
+						<groupId>org.pitest</groupId>
+						<artifactId>pitest-junit5-plugin</artifactId>
+						<version>1.2.1</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<!-- Target classes to mutate (main code) -->
+					<targetClasses>
+						<param>com.shittu24.ecommerce.*</param>
+					</targetClasses>
+					<!-- Test classes to run -->
+					<targetTests>
+						<param>com.shittu24.ecommerce.*</param>
+					</targetTests>
+					<!-- Mutation operators to use -->
+					<mutators>
+						<mutator>DEFAULTS</mutator>
+					</mutators>
+					<!-- Minimum mutation score required (%) - lowered for entity/model classes -->
+					<mutationThreshold>0</mutationThreshold>
+					<!-- Coverage threshold (%) -->
+					<coverageThreshold>0</coverageThreshold>
+					<!-- Threads for parallel execution -->
+					<threads>4</threads>
+					<!-- Avoid timing-related mutations -->
+					<timestampedReports>false</timestampedReports>
+					<!-- Output format -->
+					<outputFormats>
+						<outputFormat>HTML</outputFormat>
+						<outputFormat>XML</outputFormat>
+					</outputFormats>
+				</configuration>
+				<!-- Only run manually with: mvn pitest:mutationCoverage -->
+			</plugin>
 		</plugins>
 	</build>
 
