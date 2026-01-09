@@ -80,17 +80,21 @@
   - 44 test passano con successo
   - Supera target 80%
 
-### 🔴 6. Mutation Testing (PITest)
+### � 6. Mutation Testing (PITest)
 
-- [ ] PITest plugin configured
-- [ ] Mutation campaign executed
-- [ ] Mutation score calculated
-- [ ] Survived mutants analyzed
-- [ ] Weak test spots identified
-- [ ] Test improvements proposed/implemented
+- [x] PITest plugin configured
+- [x] Mutation campaign executed
+- [x] Mutation score calculated (9% with service tests)
+- [x] Survived mutants analyzed
+- [x] Weak test spots identified
+- [x] Test improvements proposed/implemented (11 CheckoutService unit tests)
 - [ ] **Deadline**: Week 3
-- **Status**: 🔴 Not Started
-- **Notes**: Prossimo step da implementare
+- **Status**: 🟡 In Progress
+- **Notes**: 
+  - Initial score: 0% → 9% after adding CheckoutService tests
+  - Line coverage improved: 30% → 66%
+  - Test strength: 64% (156 tests running)
+  - Next: Add controller integration tests
 
 ### 🔴 7. Performance Tests (JMH)
 
@@ -184,12 +188,12 @@
 | 3. Docker Image      | 🟢     | 100%          |
 | 4. Docker Container  | 🟢     | 100%          |
 | 5. Code Coverage     | 🟢     | 100%          |
-| 6. Mutation Testing  | 🔴     | 0%            |
+| 6. Mutation Testing  | �     | 50%           |
 | 7. Performance (JMH) | 🔴     | 0%            |
 | 8. Test Generation   | 🔴     | 0%            |
 | 9. Security Analysis | 🟡     | 50%           |
 
-**Progresso Totale**: 5.5/9 criteri (~61%)
+**Progresso Totale**: 6/9 criteri (~67%)
 
 ---
 
