@@ -3,14 +3,13 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - main
-      - develop
+      - disabled  # Disabilitato temporaneamente
     tags:
       - 'v*'
+  workflow_dispatch:  # Permette esecuzione manuale
   pull_request:
     branches:
-      - main
-      - develop
+      - disabled
 
 env:
   REGISTRY: docker.io
