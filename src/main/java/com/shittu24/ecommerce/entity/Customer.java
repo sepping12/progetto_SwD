@@ -11,6 +11,10 @@ import java.util.Set;
 @Table(name="customer")
 @Getter
 @Setter
+/*@
+  @ invariant email != null ==> !email.isEmpty();
+  @ invariant orders != null;
+  @*/
 public class Customer {
 
     @Id
@@ -30,6 +34,13 @@ public class Customer {
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
     private Set<Order> orders = new HashSet<>();
 
+    /*@
+      @ requires order != null;
+      @ ensures orders != null;
+      @ ensures orders.contains(order);
+      @ ensures order.getCustomer() == this;
+      @ assignable orders, order.customer;
+      @*/
     public void add(Order order) {
 
         if (order != null) {

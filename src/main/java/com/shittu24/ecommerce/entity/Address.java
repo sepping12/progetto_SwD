@@ -8,6 +8,11 @@ import lombok.Setter;
 @Table(name = "address")
 @Getter
 @Setter
+/*@
+  @ invariant street != null ==> !street.isEmpty();
+  @ invariant city != null ==> !city.isEmpty();
+  @ invariant country != null ==> !country.isEmpty();
+  @*/
 public class Address {
 
     @Id

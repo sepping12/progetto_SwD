@@ -21,6 +21,17 @@ public class CheckoutServiceImplementation implements CheckoutService {
         this.customerRepository = customerRepository;
     }
 
+    /*@ 
+      @ requires purchase != null;
+      @ requires purchase.getOrder() != null;
+      @ requires purchase.getCustomer() != null;
+      @ requires purchase.getCustomer().getEmail() != null;
+      @ requires purchase.getOrderItems() != null;
+      @ requires !purchase.getOrderItems().isEmpty();
+      @ ensures \result != null;
+      @ ensures \result.getOrderTrackingNumber() != null;
+      @ ensures !\result.getOrderTrackingNumber().isEmpty();
+      @*/
     @Override
     @Transactional
     public PurchaseResponse placeOrder(Purchase purchase) {
@@ -63,6 +74,12 @@ public class CheckoutServiceImplementation implements CheckoutService {
         return new PurchaseResponse(orderTrackingNumber);
     }
 
+    /*@
+      @ ensures \result != null;
+      @ ensures !\result.isEmpty();
+      @ ensures \result.length() == 36;
+      @ pure
+      @*/
     private String generateOrderTrackingNumber() {
 
         // generate a random UUID number (UUID version-4)
