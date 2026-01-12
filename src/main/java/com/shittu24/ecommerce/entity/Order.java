@@ -15,6 +15,12 @@ import java.util.Set;
 @Table(name="orders")
 @Getter
 @Setter
+/*@
+  @ invariant totalQuantity >= 0;
+  @ invariant totalPrice == null || totalPrice.compareTo(BigDecimal.ZERO) >= 0;
+  @ invariant orderItems != null;
+  @ invariant orderTrackingNumber == null || !orderTrackingNumber.isEmpty();
+  @*/
 public class Order {
 
     @Id
@@ -57,6 +63,13 @@ public class Order {
     @JoinColumn(name = "billing_address_id", referencedColumnName = "id")
     private Address billingAddress;
 
+    /*@
+      @ requires item != null;
+      @ ensures orderItems != null;
+      @ ensures orderItems.contains(item);
+      @ ensures item.getOrder() == this;
+      @ assignable orderItems, item.order;
+      @*/
     public void add(OrderItem item) {
 
         if (item != null) {

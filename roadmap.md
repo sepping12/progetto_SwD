@@ -2,9 +2,9 @@
 
 ## Project Information
 
-- **Team Members**: Giuseppe eEsposito, Alfonso Maria Ferrara
+- **Team Members**: Giuseppe Esposito, Alfonso Maria Ferrara
 - **Start Date**: 31 ottobre 2025
-- **Last Update**: 28 novembre 2025
+- **Last Update**: 12 gennaio 2026
 
 
 ## Evaluation Criteria Status
@@ -22,6 +22,29 @@
   - Docker multi-stage build configurato (Eclipse Temurin 21)
   - Health checks abilitati per container
   - Workflows: ci.yml (build + JaCoCo + SonarCloud), build.yml (Docker push to DockerHub)
+
+### ✅ 1b. JML Formal Specifications - COMPLETATO
+
+- [x] JML specifications added to core methods
+- [x] Preconditions defined for critical methods
+- [x] Postconditions defined with return value constraints
+- [x] Class invariants specified for entities
+- [x] Semantic verification completed
+- [x] No ambiguities found
+- [x] **Deadline**: Week 1
+- **Status**: ✅ Completed
+- **Notes**: 
+  - Specifiche JML aggiunte a 5 classi core:
+    - `CheckoutServiceImplementation`: placeOrder(), generateOrderTrackingNumber()
+    - `Customer`: add(Order) + invarianti
+    - `Order`: add(OrderItem) + invarianti
+    - `OrderItem`: invarianti di validazione
+    - `Address`: invarianti di validazione
+  - Verifica semantica: ✅ Nessuna ambiguità
+  - Tutte le precondizioni sono verificabili
+  - Tutte le postcondizioni sono garantite
+  - Report completo: `JML_VERIFICATION.md`
+  - Compilazione Java: ✅ Successo senza errori
 
 ### ✅ 2. SonarCloud Analysis - COMPLETATO
 
@@ -243,3 +266,12 @@
 
 - [ ] Finalize presentation
 - [ ] Final review and submission
+
+## Roadmap
+
+### Criterion 2: JML Specifications and OpenJML Verification
+- **Status**: Implemented
+- **Details**:
+  - Added JML specifications for critical methods in the `src/main/jml` directory.
+  - Configured OpenJML Maven plugin for formal verification during the `verify` phase.
+  - Example specification provided in `Example.jml`.

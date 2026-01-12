@@ -1,0 +1,13 @@
+/**
+ * Example JML Specification for a Java class.
+ */
+public class Example {
+
+    /**
+     * @requires x > 0;
+     * @ensures \result == x * 2;
+     */
+    public int doubleValue(int x) {
+        return x * 2;
+    }
+}

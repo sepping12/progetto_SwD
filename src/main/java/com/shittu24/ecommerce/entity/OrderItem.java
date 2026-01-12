@@ -10,6 +10,11 @@ import java.math.BigDecimal;
 @Table(name="order_item")
 @Getter
 @Setter
+/*@ 
+  @ invariant quantity >= 0;
+  @ invariant unitPrice == null || unitPrice.compareTo(BigDecimal.ZERO) >= 0;
+  @ invariant productId == null || productId > 0;
+  @*/
 public class OrderItem {
 
     @Id
