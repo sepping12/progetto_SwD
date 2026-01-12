@@ -1,5 +1,5 @@
 # Stage 1: Build stage
-FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
+FROM maven:3.9.6-eclipse-temurin-17-alpine AS builder
 
 WORKDIR /build
 
@@ -14,7 +14,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Stage 2: Runtime stage
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:17-jre-alpine
 
 # Create non-root user for security
 RUN addgroup -S appuser && adduser -S appuser -G appuser
