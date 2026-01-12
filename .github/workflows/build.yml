@@ -13,7 +13,6 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/spring-boot-ecommerce
 
 jobs:
   build:
@@ -26,6 +25,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Validate Docker credentials
+        run: |
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
+            echo "❌ Error: DOCKER_USERNAME secret is not configured"
+            echo "Please add DOCKER_USERNAME in GitHub Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+          if [ -z "${{ secrets.DOCKER_PASSWORD }}" ]; then
+            echo "❌ Error: DOCKER_PASSWORD secret is not configured"
+            echo "Please add DOCKER_PASSWORD in GitHub Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+          echo "✅ Docker credentials are configured"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -42,7 +55,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/spring-boot-ecommerce
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
