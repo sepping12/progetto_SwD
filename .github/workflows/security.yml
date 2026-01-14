@@ -15,6 +15,36 @@ permissions:
   actions: read
 
 jobs:
+  gitguardian-scan:
+    name: GitGuardian Secret Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: GitGuardian Scan
+        uses: GitGuardian/ggshield-action@v1.27.0
+        env:
+          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
+          GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
+          GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+        with:
+          args: --all-policies --show-secrets --exit-zero
+        continue-on-error: true
+
+      - name: Fallback - Gitleaks Scan
+        if: secrets.GITGUARDIAN_API_KEY == ''
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        continue-on-error: true
+
   snyk-security:
     name: Snyk Security Scan
     runs-on: ubuntu-latest
@@ -63,151 +93,7 @@ jobs:
           retention-days: 30
         continue-on-error: true
 
-  dependency-check:
-    name: OWASP Dependency Check
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-          cache: maven
-
-      - name: Make mvnw executable
-        run: chmod +x mvnw
-
-      - name: Run OWASP Dependency Check
-        env:
-          # Use NVD API Key if available (highly recommended)
-          # Get your key at: https://nvd.nist.gov/developers/request-an-api-key
-          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run: |
-          if [ -n "$NVD_API_KEY" ]; then
-            echo "✅ Using NVD API Key for dependency check"
-            ./mvnw -B dependency-check:check -Ddependency-check.skip=false -DfailBuildOnCVSS=7 -DnvdApiKey=$NVD_API_KEY
-          else
-            echo "⚠️ WARNING: No NVD API Key configured!"
-            echo "Dependency check will be skipped. This is expected if you haven't set up the API key yet."
-            echo ""
-            echo "To enable full dependency scanning:"
-            echo "1. Get a FREE API key: https://nvd.nist.gov/developers/request-an-api-key"
-            echo "2. Add it as NVD_API_KEY secret in GitHub repository settings"
-            echo "3. See NVD_API_KEY_SETUP.md for detailed instructions"
-            echo ""
-            echo "Continuing without dependency check..."
-          fi
-        continue-on-error: true
-
-      - name: Upload Dependency Check Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-check-report
-          path: target/dependency-check-report.html
-          retention-days: 30
-        continue-on-error: true
-
-      - name: Upload Dependency Check Results (SARIF)
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: target/dependency-check-report.sarif
-        continue-on-error: true
-
-  spotbugs-analysis:
-    name: SpotBugs Security Analysis
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-          cache: maven
-
-      - name: Make mvnw executable
-        run: chmod +x mvnw
-
-      - name: Compile code
-        run: ./mvnw -B clean compile test-compile
-
-      - name: Run SpotBugs with FindSecBugs
-        run: ./mvnw -B spotbugs:check
-        continue-on-error: true
-
-      - name: Upload SpotBugs Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: spotbugs-report
-          path: target/spotbugsXml.xml
-          retention-days: 30
-
-  gitguardian-scan:
-    name: GitGuardian Secret Scanning
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: GitGuardian Scan
-        uses: GitGuardian/ggshield-action@v1.27.0
-        env:
-          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
-          GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
-          GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
-        with:
-          args: --all-policies --show-secrets --exit-zero
-        continue-on-error: true
-
-      - name: Fallback - Gitleaks Scan
-        if: secrets.GITGUARDIAN_API_KEY == ''
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-        continue-on-error: true
-
-  codeql-analysis:
-    name: CodeQL Analysis
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-      contents: read
-      actions: read
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: java
-          queries: security-and-quality
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-          cache: maven
-
-   onarqube-analysis:
+  sonarqube-analysis:
     name: SonarQube Security Analysis
     runs-on: ubuntu-latest
     
@@ -267,9 +153,163 @@ jobs:
           retention-days: 30
         continue-on-error: true
 
+  dependency-check:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Run OWASP Dependency Check
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          if [ -n "$NVD_API_KEY" ]; then
+            echo "✅ Using NVD API Key for dependency check"
+            ./mvnw -B dependency-check:check -Ddependency-check.skip=false -DfailBuildOnCVSS=7 -DnvdApiKey=$NVD_API_KEY
+          else
+            echo "⚠️ WARNING: No NVD API Key configured!"
+            echo "Dependency check will be skipped."
+            echo "Get a FREE API key: https://nvd.nist.gov/developers/request-an-api-key"
+          fi
+        continue-on-error: true
+
+      - name: Upload Dependency Check Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: target/dependency-check-report.html
+          retention-days: 30
+        continue-on-error: true
+
+      - name: Upload Dependency Check Results (SARIF)
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: target/dependency-check-report.sarif
+        continue-on-error: true
+
+  spotbugs-analysis:
+    name: SpotBugs Security Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Compile code
+        run: ./mvnw -B clean compile test-compile
+
+      - name: Run SpotBugs with FindSecBugs
+        run: ./mvnw -B spotbugs:check
+        continue-on-error: true
+
+      - name: Upload SpotBugs Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotbugs-report
+          path: target/spotbugsXml.xml
+          retention-days: 30
+
+  codeql-analysis:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java
+          queries: security-and-quality
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Build with Maven
+        run: ./mvnw -B clean compile -DskipTests
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+  docker-security:
+    name: Docker Image Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t ecommerce-app:${{ github.sha }} .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ecommerce-app:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Generate Trivy JSON report
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ecommerce-app:${{ github.sha }}
+          format: 'json'
+          output: 'trivy-report.json'
+        continue-on-error: true
+
+      - name: Upload Trivy JSON Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-security-report
+          path: trivy-report.json
+          retention-days: 30
+
   security-summary:
     name: Security Summary
-    needs: [snyk-security, dependency-check, spotbugs-analysis, gitguardian-scan, codeql-analysis, docker-security, sonarqube-analysis]
+    needs: [gitguardian-scan, snyk-security, sonarqube-analysis, dependency-check, spotbugs-analysis, codeql-analysis, docker-security]
     runs-on: ubuntu-latest
     if: always()
     
@@ -279,13 +319,13 @@ jobs:
         with:
           script: |
             const jobs = [
+              { name: '🔐 GitGuardian Secret Scanning', status: '${{ needs.gitguardian-scan.result }}' },
               { name: '🔍 Snyk Security Scan', status: '${{ needs.snyk-security.result }}' },
+              { name: '📊 SonarQube Analysis', status: '${{ needs.sonarqube-analysis.result }}' },
               { name: '🛡️ OWASP Dependency Check', status: '${{ needs.dependency-check.result }}' },
               { name: '🐛 SpotBugs Security Analysis', status: '${{ needs.spotbugs-analysis.result }}' },
-              { name: '🔐 GitGuardian Secret Scanning', status: '${{ needs.gitguardian-scan.result }}' },
               { name: '🔎 CodeQL Analysis', status: '${{ needs.codeql-analysis.result }}' },
-              { name: '🐳 Docker Security Scan', status: '${{ needs.docker-security.result }}' },
-              { name: '📊 SonarQube Analysis', status: '${{ needs.sonarqube-analysis.result }}' }
+              { name: '🐳 Docker Security Scan', status: '${{ needs.docker-security.result }}' }
             ];
             
             const summary = jobs.map(job => {
@@ -317,54 +357,6 @@ jobs:
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `## 🔒 Security Scan Results\n\n${summary}\n\n${description
-          image-ref: ecommerce-app:${{ github.sha }}
-          format: 'json'
-          output: 'trivy-report.json'
-        continue-on-error: true
-
-      - name: Upload Trivy JSON Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-security-report
-          path: trivy-report.json
-          retention-days: 30
-
-  security-summary:
-    name: Security Summary
-    needs: [dependency-check, spotbugs-analysis, secret-scanning, codeql-analysis, docker-security]
-    runs-on: ubuntu-latest
-    if: always()
-    
-    steps:
-      - name: Create Security Summary
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const jobs = [
-              { name: 'OWASP Dependency Check', status: '${{ needs.dependency-check.result }}' },
-              { name: 'SpotBugs Security Analysis', status: '${{ needs.spotbugs-analysis.result }}' },
-              { name: 'Secret Scanning', status: '${{ needs.secret-scanning.result }}' },
-              { name: 'CodeQL Analysis', status: '${{ needs.codeql-analysis.result }}' },
-              { name: 'Docker Security Scan', status: '${{ needs.docker-security.result }}' }
-            ];
-            
-            const summary = jobs.map(job => {
-              const icon = job.status === 'success' ? '✅' : job.status === 'skipped' ? '⏭️' : '❌';
-              return `${icon} ${job.name}: ${job.status}`;
-            }).join('\n');
-            
-            core.summary
-              .addHeading('🔒 Security Scan Results')
-              .addRaw(summary)
-              .write();
-            
-            if (context.eventName === 'pull_request') {
-              github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: `## 🔒 Security Scan Results\n\n${summary}\n\nView detailed reports in the [Actions artifacts](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
+                body: `## 🔒 Security Scan Results\n\n${summary}\n\n${description}\n\nView detailed reports in the [Actions artifacts](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
               });
             }
