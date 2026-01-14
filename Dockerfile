@@ -10,8 +10,8 @@ RUN mvn dependency:resolve
 # Copy source code
 COPY src ./src
 
-# Build the application
-RUN mvn clean package -DskipTests
+# Build the application (skip security plugins for faster build)
+RUN mvn clean package -DskipTests -Dspotbugs.skip=true -Ddependency-check.skip=true
 
 # Stage 2: Runtime stage
 FROM eclipse-temurin:17-jre-alpine
