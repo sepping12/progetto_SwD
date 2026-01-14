@@ -223,6 +223,7 @@
 					<threshold>Low</threshold>
 					<xmlOutput>true</xmlOutput>
 					<failOnError>false</failOnError>
+					<excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
 					<plugins>
 						<plugin>
 							<groupId>com.h3xstream.findsecbugs</groupId>

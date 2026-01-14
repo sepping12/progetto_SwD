@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter
+    xmlns="https://github.com/spotbugs/filter/3.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://github.com/spotbugs/filter/3.0.0 https://raw.githubusercontent.com/spotbugs/spotbugs/3.1.0/spotbugs/etc/findbugsfilter.xsd">
+
+    <!-- 
+        Suppress EI_EXPOSE_REP and EI_EXPOSE_REP2 warnings for JPA entities and DTOs.
+        These classes are designed to be mutable and used within Spring/JPA context.
+        Creating defensive copies would break JPA features (lazy loading, dirty checking, etc.)
+    -->
+
+    <!-- Suppress for all JPA entities -->
+    <Match>
+        <Package name="~com\.shittu24\.ecommerce\.entity.*"/>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Suppress for DTOs -->
+    <Match>
+        <Package name="~com\.shittu24\.ecommerce\.dto.*"/>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Suppress for Spring configuration classes with injected dependencies -->
+    <Match>
+        <Class name="com.shittu24.ecommerce.config.MyDataRestConfig"/>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Suppress SPRING_ENDPOINT warning - it's informational only -->
+    <Match>
+        <Bug pattern="SPRING_ENDPOINT"/>
+    </Match>
+
+</FindBugsFilter>
