@@ -9,6 +9,7 @@ Built with modern DevOps practices including CI/CD pipelines, Docker containeriz
 
 - [Installation](#installation)
 - [CI/CD & Build](#cicd--build)
+- [Security Analysis](#security-analysis)
 - [Docker](#docker)
 - [Technologies Used](#technologies-used)
 - [Features](#features)
@@ -93,6 +94,83 @@ Triggered on: `push` to main/develop/tags, `pull_request`
 ```
 Settings > Secrets and variables > Actions > New repository secret
 ```
+
+#### 3. **security.yml** - Comprehensive Security Scanning
+Triggered on: `push` to main/develop, `pull_request`, `weekly schedule`
+
+**What it does**:
+- **GitGuardian**: Scans for hardcoded secrets and credentials
+- **Snyk**: Identifies dependency vulnerabilities and license issues
+- **SonarQube/SonarCloud**: Analyzes code quality and security hotspots
+- **OWASP Dependency-Check**: CVE scanning via NVD database
+- **SpotBugs + FindSecBugs**: Static analysis security testing
+- **CodeQL**: Semantic code analysis for vulnerabilities
+- **Trivy**: Container image security scanning
+
+**Required Secrets** (See [GITHUB_SECRETS_SETUP.md](GITHUB_SECRETS_SETUP.md)):
+- `GITGUARDIAN_API_KEY` - GitGuardian secret scanning ✅ **Required**
+- `SNYK_TOKEN` - Snyk vulnerability scanning ✅ **Required**
+- `SONAR_TOKEN` - SonarQube/SonarCloud analysis ✅ **Required**
+- `NVD_API_KEY` - OWASP dependency checking (recommended)
+
+**Setup Guide**: See [SECURITY_TOOLS_SETUP.md](SECURITY_TOOLS_SETUP.md) for detailed configuration instructions.
+
+## Security Analysis
+
+This project implements **defense-in-depth security** using multiple industry-standard tools:
+
+### 🔒 Security Tools (Required by Criteria)
+
+1. **GitGuardian** - Secret Detection
+   - Scans for 350+ types of secrets
+   - Monitors commit history
+   - Real-time alerts for leaked credentials
+   - Dashboard: https://dashboard.gitguardian.com/
+
+2. **Snyk** - Dependency Security
+   - Vulnerability scanning for dependencies
+   - License compliance checking
+   - Auto-fix pull requests
+   - Dashboard: https://app.snyk.io/
+
+3. **SonarQube/SonarCloud** - Code Quality & Security
+   - OWASP Top 10 coverage
+   - Security hotspots detection
+   - Code smells and technical debt
+   - Quality gates with coverage integration
+   - Dashboard: https://sonarcloud.io/
+
+### 🛡️ Additional Security Layers
+
+- **OWASP Dependency-Check**: CVE scanning via National Vulnerability Database
+- **SpotBugs + FindSecBugs**: Static analysis for security patterns
+- **CodeQL**: Advanced semantic security analysis
+- **Trivy**: Container image vulnerability scanning
+
+### 📊 Security Reports
+
+View security findings in:
+- **GitHub Security Tab**: Code scanning alerts (SARIF reports)
+- **GitHub Actions**: Downloadable artifacts with detailed reports
+- **External Dashboards**: GitGuardian, Snyk, SonarCloud
+
+### 🚀 Quick Setup
+
+```bash
+# 1. Configure secrets (see GITHUB_SECRETS_SETUP.md)
+gh secret set GITGUARDIAN_API_KEY
+gh secret set SNYK_TOKEN
+gh secret set SONAR_TOKEN
+
+# 2. Run security workflow
+# Go to Actions → Security Scan → Run workflow
+
+# 3. View results
+# Check Security tab for alerts
+# Download artifacts from workflow run
+```
+
+**Full Documentation**: [SECURITY_TOOLS_SETUP.md](SECURITY_TOOLS_SETUP.md)
 
 ## Docker
 
