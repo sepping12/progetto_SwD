@@ -18,6 +18,9 @@
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 		<jmh.version>1.37</jmh.version>
+		<spotbugs.version>4.8.3</spotbugs.version>
+		<findsecbugs.version>1.12.0</findsecbugs.version>
+		<dependency-check.version>9.0.9</dependency-check.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -188,6 +191,87 @@
 								<argument>org.openjdk.jmh.Main</argument>
 								<argument>.*</argument>
 							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- OWASP Dependency-Check Plugin for security vulnerability scanning -->
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>${dependency-check.version}</version>
+				<configuration>
+					<format>ALL</format>
+					<failBuildOnCVSS>7</failBuildOnCVSS>
+					<suppressionFiles>
+						<suppressionFile>owasp-suppression.xml</suppressionFile>
+					</suppressionFiles>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- SpotBugs Plugin for static analysis -->
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>${spotbugs.version}</version>
+				<configuration>
+					<effort>Max</effort>
+					<threshold>Low</threshold>
+					<xmlOutput>true</xmlOutput>
+					<failOnError>false</failOnError>
+					<plugins>
+						<plugin>
+							<groupId>com.h3xstream.findsecbugs</groupId>
+							<artifactId>findsecbugs-plugin</artifactId>
+							<version>${findsecbugs.version}</version>
+						</plugin>
+					</plugins>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Maven Enforcer Plugin for dependency convergence and security -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.4.1</version>
+				<executions>
+					<execution>
+						<id>enforce</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireMavenVersion>
+									<version>[3.6,)</version>
+								</requireMavenVersion>
+								<requireJavaVersion>
+									<version>[17,)</version>
+								</requireJavaVersion>
+								<bannedDependencies>
+									<excludes>
+										<!-- Ban vulnerable versions of Log4j -->
+										<exclude>org.apache.logging.log4j:log4j-core:(,2.17.1)</exclude>
+										<!-- Ban old Spring versions with known vulnerabilities -->
+										<exclude>org.springframework:spring-core:(,5.3.18)</exclude>
+									</excludes>
+								</bannedDependencies>
+							</rules>
 						</configuration>
 					</execution>
 				</executions>
