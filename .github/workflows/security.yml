@@ -142,8 +142,8 @@ jobs:
         continue-on-error: true
 
       - name: Upload SonarQube Quality Gate Status
-        if: secrets.SONAR_TOKEN != ''
         uses: actions/upload-artifact@v4
+        with:
           name: sonarqube-quality-gate
           path: target/sonar/report-task.txt
           retention-days: 30
