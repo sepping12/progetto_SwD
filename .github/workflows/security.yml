@@ -38,7 +38,6 @@ jobs:
         continue-on-error: true
 
       - name: Fallback - Gitleaks Scan
-        if: secrets.GITGUARDIAN_API_KEY == ''
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -69,14 +68,12 @@ jobs:
         continue-on-error: true
 
       - name: Upload Snyk results to GitHub Code Scanning
-        if: secrets.SNYK_TOKEN != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
         continue-on-error: true
 
       - name: Generate Snyk JSON report
-        if: secrets.SNYK_TOKEN != ''
         uses: snyk/actions/maven@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -147,7 +144,6 @@ jobs:
       - name: Upload SonarQube Quality Gate Status
         if: secrets.SONAR_TOKEN != ''
         uses: actions/upload-artifact@v4
-        with:
           name: sonarqube-quality-gate
           path: target/sonar/report-task.txt
           retention-days: 30
