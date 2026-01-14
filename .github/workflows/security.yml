@@ -155,20 +155,20 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
 
-      - name: Generate Trivy HTML report
+      - name: Generate Trivy JSON report
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ecommerce-app:${{ github.sha }}
-          format: 'template'
-          template: '@/contrib/html.tpl'
-          output: 'trivy-report.html'
+          format: 'json'
+          output: 'trivy-report.json'
+        continue-on-error: true
 
-      - name: Upload Trivy HTML Report
+      - name: Upload Trivy JSON Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: trivy-security-report
-          path: trivy-report.html
+          path: trivy-report.json
           retention-days: 30
 
   security-summary:
