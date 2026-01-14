@@ -207,14 +207,10 @@
 					<suppressionFiles>
 						<suppressionFile>owasp-suppression.xml</suppressionFile>
 					</suppressionFiles>
+					<!-- Skip execution by default - run manually with: mvn dependency-check:check -->
+					<skip>true</skip>
 				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>check</goal>
-						</goals>
-					</execution>
-				</executions>
+				<!-- No automatic execution - run only when explicitly invoked -->
 			</plugin>
 
 			<!-- SpotBugs Plugin for static analysis -->

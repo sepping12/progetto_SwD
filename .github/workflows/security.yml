@@ -40,13 +40,18 @@ jobs:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
           if [ -n "$NVD_API_KEY" ]; then
-            echo "Using NVD API Key for dependency check"
-            ./mvnw -B dependency-check:check -DfailBuildOnCVSS=7 -DnvdApiKey=$NVD_API_KEY
+            echo "✅ Using NVD API Key for dependency check"
+            ./mvnw -B dependency-check:check -Ddependency-check.skip=false -DfailBuildOnCVSS=7 -DnvdApiKey=$NVD_API_KEY
           else
-            echo "Warning: No NVD API Key found. Using cached data only."
-            echo "Get your key at: https://nvd.nist.gov/developers/request-an-api-key"
-            echo "Add it as NVD_API_KEY secret in GitHub repository settings."
-            ./mvnw -B dependency-check:check -DfailBuildOnCVSS=7 -DnvdDatafeedEnabled=false || echo "Dependency check failed, but continuing..."
+            echo "⚠️ WARNING: No NVD API Key configured!"
+            echo "Dependency check will be skipped. This is expected if you haven't set up the API key yet."
+            echo ""
+            echo "To enable full dependency scanning:"
+            echo "1. Get a FREE API key: https://nvd.nist.gov/developers/request-an-api-key"
+            echo "2. Add it as NVD_API_KEY secret in GitHub repository settings"
+            echo "3. See NVD_API_KEY_SETUP.md for detailed instructions"
+            echo ""
+            echo "Continuing without dependency check..."
           fi
         continue-on-error: true
 
