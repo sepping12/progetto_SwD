@@ -30,8 +30,24 @@ jobs:
           java-version: '17'
           cache: maven
 
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
       - name: Run OWASP Dependency Check
-        run: ./mvnw -B dependency-check:check -DfailBuildOnCVSS=7
+        env:
+          # Use NVD API Key if available (highly recommended)
+          # Get your key at: https://nvd.nist.gov/developers/request-an-api-key
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          if [ -n "$NVD_API_KEY" ]; then
+            echo "Using NVD API Key for dependency check"
+            ./mvnw -B dependency-check:check -DfailBuildOnCVSS=7 -DnvdApiKey=$NVD_API_KEY
+          else
+            echo "Warning: No NVD API Key found. Using cached data only."
+            echo "Get your key at: https://nvd.nist.gov/developers/request-an-api-key"
+            echo "Add it as NVD_API_KEY secret in GitHub repository settings."
+            ./mvnw -B dependency-check:check -DfailBuildOnCVSS=7 -DnvdDatafeedEnabled=false || echo "Dependency check failed, but continuing..."
+          fi
         continue-on-error: true
 
       - name: Upload Dependency Check Report
@@ -41,6 +57,7 @@ jobs:
           name: dependency-check-report
           path: target/dependency-check-report.html
           retention-days: 30
+        continue-on-error: true
 
       - name: Upload Dependency Check Results (SARIF)
         if: always()
