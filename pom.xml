@@ -171,6 +171,13 @@
 						<param>com.shittu24.ecommerce.entity.*</param>
 						<param>com.shittu24.ecommerce.SpringBootEcommerceApplication</param>
 					</excludedClasses>
+					<!-- Exclude Lombok-generated methods that are hard to test meaningfully -->
+					<excludedMethods>
+						<param>equals</param>
+						<param>hashCode</param>
+						<param>toString</param>
+						<param>canEqual</param>
+					</excludedMethods>
 					<!-- Mutation operators to use -->
 					<mutators>
 						<mutator>DEFAULTS</mutator>
