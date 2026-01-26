@@ -1,0 +1,304 @@
+\documentclass[12pt,a4paper]{article}
+
+% ============================================
+% PACKAGES
+% ============================================
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usepackage{setspace}
+
+% ============================================
+% PAGE SETUP
+% ============================================
+\geometry{
+    a4paper,
+    left=2.5cm,
+    right=2.5cm,
+    top=3cm,
+    bottom=3cm
+}
+
+% Fix fancyhdr warning
+\setlength{\headheight}{14.5pt}
+\addtolength{\topmargin}{-2.5pt}
+
+% ============================================
+% HEADER & FOOTER
+% ============================================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Spring Boot E-Commerce Dependability Analysis}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{\small Software Dependability -- A.Y. 2024/2025}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% ============================================
+% CODE LISTINGS SETUP
+% ============================================
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    showstringspaces=false,
+    captionpos=b
+}
+
+% Define YAML language for listings
+\lstdefinelanguage{YAML}{
+    keywords={true,false,null,y,n},
+    sensitive=false,
+    comment=[l]{\#},
+    morecomment=[s]{/*}{*/},
+    morestring=[b]',
+    morestring=[b]"
+}
+
+% Define Dockerfile language for listings
+\lstdefinelanguage{Dockerfile}{
+    keywords={FROM,RUN,CMD,LABEL,MAINTAINER,EXPOSE,ENV,ADD,COPY,ENTRYPOINT,VOLUME,USER,WORKDIR,ARG,ONBUILD,STOPSIGNAL,HEALTHCHECK,SHELL,AS},
+    sensitive=false,
+    comment=[l]{\#},
+    morestring=[b]',
+    morestring=[b]"
+}
+
+% ============================================
+% HYPERLINKS
+% ============================================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    filecolor=magenta,
+    urlcolor=blue!60!black,
+    citecolor=green!50!black,
+    pdftitle={Spring Boot E-Commerce Dependability Analysis},
+    pdfauthor={Alfonso Maria Ferrara, Giuseppe Esposito},
+}
+
+% ============================================
+% DOCUMENT BEGIN
+% ============================================
+\begin{document}
+
+% ============================================
+% TITLE PAGE
+% ============================================
+\begin{titlepage}
+    \centering
+    
+    % University header
+    \vspace*{1cm}
+    {\Large\textsc{Università degli Studi di Salerno}}\\[0.3cm]
+    {\large\textsc{Dipartimento di Informatica}}\\[1.5cm]
+    
+    % Course name
+    {\large Corso di}\\[0.2cm]
+    {\Large\textbf{Software Dependability}}\\[0.3cm]
+    {\normalsize Anno Accademico 2024/2025}\\[2cm]
+    
+    % Title
+    \rule{\textwidth}{1.5pt}\\[0.5cm]
+    {\Huge\bfseries Spring Boot E-Commerce}\\[0.3cm]
+    {\LARGE Comprehensive Dependability Analysis}\\[0.5cm]
+    \rule{\textwidth}{1.5pt}\\[2cm]
+    
+    % Authors
+    \begin{minipage}[t]{0.45\textwidth}
+        \begin{flushleft}
+            \large\textit{Autori:}\\
+            \Large\textbf{Alfonso Maria Ferrara}\\
+            \Large\textbf{Giuseppe Esposito}
+        \end{flushleft}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \begin{flushright}
+            \large\textit{Matricole:}\\
+            \Large\textbf{[Matricola Alfonso]}\\
+            \Large\textbf{[Matricola Giuseppe]}
+        \end{flushright}
+    \end{minipage}\\[2cm]
+    
+    % Project links
+    \begin{center}
+        \large\textbf{Risorse del Progetto}\\[0.5cm]
+        \normalsize
+        \begin{tabular}{rl}
+            \textbf{Repository:} & \url{https://github.com/sepping12/progetto_SwD}\\[0.2cm]
+            \textbf{SonarCloud:} & \url{https://sonarcloud.io/project/overview?id=sepping12_progetto_SwD}\\[0.2cm]
+            \textbf{DockerHub:} & \url{https://hub.docker.com/r/[your-dockerhub]/spring-boot-ecommerce}
+        \end{tabular}
+    \end{center}
+    
+    \vfill
+    
+    % Date
+    {\large Gennaio 2026}
+    
+\end{titlepage}
+
+% ============================================
+% ABSTRACT
+% ============================================
+\newpage
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+
+This report presents a comprehensive dependability analysis of a Spring Boot E-Commerce application, evaluating software quality through nine distinct criteria covering static code analysis, test coverage, mutation testing, performance benchmarking, security scanning, automated test generation, and containerization.
+
+The analysis employs industry-standard tools including SonarCloud for static analysis, JaCoCo for code coverage measurement, PITest for mutation testing, JMH for performance benchmarking, Randoop for automated test generation, SpotBugs/FindSecBugs for security analysis, and Docker for containerization. All tools are integrated into a fully automated CI/CD pipeline using GitHub Actions.
+
+Key achievements include: 100\% mutation score on business logic, 91.9\% code coverage, zero security vulnerabilities detected, 1,626 total tests (161 manual + 1,465 generated), and production-ready Docker containerization. The analysis demonstrates exceptional software quality with a SonarCloud Triple-A rating (Security: A, Reliability: A, Maintainability: A).
+
+The project documents significant technical challenges and their solutions, including PITest configuration for excluding Lombok-generated methods, CI/CD environment variable management for integration tests, and strategic focus on business logic quality over framework-generated code.
+
+\vspace{0.5cm}
+\noindent\textbf{Keywords:} Software Dependability, Mutation Testing, Code Coverage, Static Analysis, SonarCloud, Docker, CI/CD, GitHub Actions, Spring Boot, JMH, PITest, Security Analysis
+
+\newpage
+
+% Table of Contents
+\tableofcontents
+\newpage
+
+% List of Figures
+\listoffigures
+\addcontentsline{toc}{section}{List of Figures}
+\newpage
+
+% List of Tables
+\listoftables
+\addcontentsline{toc}{section}{List of Tables}
+\newpage
+
+% ============================================
+% MAIN SECTIONS
+% ============================================
+
+\input{sections/01-introduction}
+\input{sections/02-background}
+\input{sections/03-methodology}
+\input{sections/04-analysis}
+\input{sections/05-results}
+\input{sections/06-improvements}
+\input{sections/07-conclusions}
+
+% ============================================
+% BIBLIOGRAPHY
+% ============================================
+\newpage
+\nocite{*}
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
+% ============================================
+% APPENDICES
+% ============================================
+\newpage
+\appendix
+
+\section{Tool Configurations}
+\label{app:configs}
+
+\subsection{JaCoCo Configuration}
+JaCoCo is integrated via the Maven plugin with standard configuration, generating HTML and XML reports during the \texttt{verify} phase. The plugin instruments bytecode at runtime to track line, branch, and method coverage.
+
+\begin{lstlisting}[language=xml, caption={JaCoCo Maven Plugin Configuration}]
+<plugin>
+    <groupId>org.jacoco</groupId>
+    <artifactId>jacoco-maven-plugin</artifactId>
+    <version>0.8.10</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>prepare-agent</goal>
+            </goals>
+        </execution>
+        <execution>
+            <id>report</id>
+            <phase>test</phase>
+            <goals>
+                <goal>report</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+\end{lstlisting}
+
+\subsection{PITest Configuration}
+PITest mutation testing is configured with strategic exclusion of Lombok-generated methods to focus on business logic quality.
+
+\begin{lstlisting}[language=xml, caption={PITest Maven Plugin Configuration}]
+<plugin>
+    <groupId>org.pitest</groupId>
+    <artifactId>pitest-maven</artifactId>
+    <version>1.14.4</version>
+    <dependencies>
+        <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-junit5-plugin</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+    </dependencies>
+    <configuration>
+        <targetClasses>
+            <param>com.shittu24.ecommerce.service.*</param>
+            <param>com.shittu24.ecommerce.controller.*</param>
+            <param>com.shittu24.ecommerce.dto.*</param>
+        </targetClasses>
+        <excludedMethods>
+            <param>equals</param>
+            <param>hashCode</param>
+            <param>toString</param>
+            <param>canEqual</param>
+        </excludedMethods>
+        <outputFormats>
+            <outputFormat>HTML</outputFormat>
+            <outputFormat>XML</outputFormat>
+        </outputFormats>
+    </configuration>
+</plugin>
+\end{lstlisting}
+
+\subsection{SpotBugs/FindSecBugs Configuration}
+Security analysis with SpotBugs and FindSecBugs plugin for comprehensive vulnerability detection.
+
+\begin{lstlisting}[language=bash, caption={Running Security Analysis}]
+# SpotBugs with FindSecBugs
+./mvnw spotbugs:spotbugs
+
+# OWASP Dependency-Check
+./mvnw dependency-check:check
+\end{lstlisting}
+
+\section{Complete Metrics Tables}
+\label{app:metrics}
+
+Detailed metrics and analysis reports are available in the project repository at:
+\url{https://github.com/sepping12/progetto_SwD}
+
+\section{Security Analysis Details}
+\label{app:security}
+
+Complete security analysis report including SpotBugs, FindSecBugs, and OWASP Dependency-Check results is documented in \texttt{SECURITY\_ANALYSIS\_COMPLETE.md}.
+
+\end{document}
