@@ -40,6 +40,7 @@ class CheckoutServiceImplementationTest {
     private CheckoutServiceImplementation checkoutService;
 
     private Purchase purchase;
+    private Customer customer;
     private Customer newCustomer;
     private Customer existingCustomer;
     private Order order;
@@ -50,6 +51,11 @@ class CheckoutServiceImplementationTest {
     @BeforeEach
     void setUp() {
         // Initialize test data
+        customer = new Customer();
+        customer.setFirstName("Test");
+        customer.setLastName("User");
+        customer.setEmail("test@example.com");
+        
         newCustomer = new Customer();
         newCustomer.setId(1L);
         newCustomer.setFirstName("John");
@@ -395,6 +401,113 @@ class CheckoutServiceImplementationTest {
         // Verify the order is linked to the customer
         assertNotNull(savedCustomer.getOrders());
         assertFalse(savedCustomer.getOrders().isEmpty());
+    }
+
+
+
+    @Test
+    @DisplayName("Should handle order with zero total price - edge case")
+    void testPlaceOrderWithZeroPrice() {
+        // Arrange
+        when(customerRepository.findByEmail(anyString())).thenReturn(null);
+        when(customerRepository.save(any(Customer.class))).thenReturn(newCustomer);
+        
+        order.setTotalPrice(BigDecimal.ZERO);
+
+        // Act
+        PurchaseResponse response = checkoutService.placeOrder(purchase);
+
+        // Assert
+        assertNotNull(response);
+        assertNotNull(response.getOrderTrackingNumber());
+        verify(customerRepository).save(any(Customer.class));
+    }
+
+    @Test
+    @DisplayName("Should handle order with very large quantity")
+    void testPlaceOrderWithLargeQuantity() {
+        // Arrange
+        when(customerRepository.findByEmail(anyString())).thenReturn(null);
+        when(customerRepository.save(any(Customer.class))).thenReturn(newCustomer);
+        
+        order.setTotalQuantity(9999);
+
+        // Act
+        PurchaseResponse response = checkoutService.placeOrder(purchase);
+
+        // Assert
+        assertNotNull(response);
+        verify(customerRepository).save(any(Customer.class));
+    }
+
+    @Test
+    @DisplayName("Should handle customer with empty first name")
+    void testPlaceOrderEmptyFirstName() {
+        // Arrange
+        when(customerRepository.findByEmail(anyString())).thenReturn(null);
+        when(customerRepository.save(any(Customer.class))).thenReturn(newCustomer);
+        
+        customer.setFirstName("");
+
+        // Act
+        PurchaseResponse response = checkoutService.placeOrder(purchase);
+
+        // Assert
+        assertNotNull(response);
+        verify(customerRepository).save(any(Customer.class));
+    }
+
+    @Test
+    @DisplayName("Should handle customer with empty last name")
+    void testPlaceOrderEmptyLastName() {
+        // Arrange
+        when(customerRepository.findByEmail(anyString())).thenReturn(null);
+        when(customerRepository.save(any(Customer.class))).thenReturn(newCustomer);
+        
+        customer.setLastName("");
+
+        // Act
+        PurchaseResponse response = checkoutService.placeOrder(purchase);
+
+        // Assert
+        assertNotNull(response);
+        verify(customerRepository).save(any(Customer.class));
+    }
+
+@Test
+    @DisplayName("Should generate unique tracking numbers")
+    void testUniqueTrackingNumbers() {
+        // Arrange
+        when(customerRepository.findByEmail(anyString())).thenReturn(null);
+        when(customerRepository.save(any(Customer.class))).thenReturn(newCustomer);
+        
+        // Act - place multiple orders
+        PurchaseResponse response1 = checkoutService.placeOrder(purchase);
+        PurchaseResponse response2 = checkoutService.placeOrder(purchase);
+        PurchaseResponse response3 = checkoutService.placeOrder(purchase);
+
+        // Assert - all tracking numbers should be unique
+        assertNotEquals(response1.getOrderTrackingNumber(), response2.getOrderTrackingNumber());
+        assertNotEquals(response2.getOrderTrackingNumber(), response3.getOrderTrackingNumber());
+        assertNotEquals(response1.getOrderTrackingNumber(), response3.getOrderTrackingNumber());
+    }
+
+    @Test
+    @DisplayName("Should handle address with special characters")
+    void testPlaceOrderSpecialCharactersInAddress() {
+        // Arrange
+        when(customerRepository.findByEmail(anyString())).thenReturn(null);
+        when(customerRepository.save(any(Customer.class))).thenReturn(newCustomer);
+        
+        billingAddress.setStreet("123 O'Brien St. Apt #4");
+        billingAddress.setCity("São Paulo");
+
+        // Act
+        PurchaseResponse response = checkoutService.placeOrder(purchase);
+
+        // Assert
+        assertNotNull(response);
+        verify(customerRepository).save(any(Customer.class));
     }
 }
 

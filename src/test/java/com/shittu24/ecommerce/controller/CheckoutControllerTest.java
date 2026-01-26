@@ -301,4 +301,111 @@ class CheckoutControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderTrackingNumber").exists());
     }
+
+    @Test
+    @DisplayName("Test purchase with empty order items - edge case")
+    void testPurchaseWithEmptyOrderItems() throws Exception {
+        purchase.setOrderItems(new HashSet<>());
+
+        mockMvc.perform(post("/api/checkout/purchase")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(purchase)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Test purchase with null billing address - edge case")
+    void testPurchaseWithNullBillingAddress() throws Exception {
+        purchase.setBillingAddress(null);
+
+        mockMvc.perform(post("/api/checkout/purchase")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(purchase)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderTrackingNumber").exists());
+    }
+
+    @Test
+    @DisplayName("Test purchase with null shipping address - edge case")
+    void testPurchaseWithNullShippingAddress() throws Exception {
+        purchase.setShippingAddress(null);
+
+        mockMvc.perform(post("/api/checkout/purchase")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(purchase)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderTrackingNumber").exists());
+    }
+
+    @Test
+    @DisplayName("Test purchase with zero total price - edge case")
+    void testPurchaseWithZeroTotalPrice() throws Exception {
+        order.setTotalPrice(BigDecimal.ZERO);
+
+        mockMvc.perform(post("/api/checkout/purchase")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(purchase)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderTrackingNumber").exists());
+    }
+
+    @Test
+    @DisplayName("Test purchase with negative quantity - edge case")
+    void testPurchaseWithNegativeQuantity() throws Exception {
+        order.setTotalQuantity(-1);
+
+        mockMvc.perform(post("/api/checkout/purchase")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(purchase)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Test purchase with very large quantity - edge case")
+    void testPurchaseWithVeryLargeQuantity() throws Exception {
+        order.setTotalQuantity(Integer.MAX_VALUE);
+
+        mockMvc.perform(post("/api/checkout/purchase")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(purchase)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderTrackingNumber").exists());
+    }
+
+    @Test
+    @DisplayName("Test purchase with empty customer email - edge case")
+    void testPurchaseWithEmptyEmail() throws Exception {
+        customer.setEmail("");
+
+        mockMvc.perform(post("/api/checkout/purchase")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(purchase)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Test purchase with special characters in name")
+    void testPurchaseWithSpecialCharactersInName() throws Exception {
+        customer.setFirstName("José-François");
+        customer.setLastName("O'Brien");
+
+        mockMvc.perform(post("/api/checkout/purchase")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(purchase)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderTrackingNumber").exists());
+    }
+
+    @Test
+    @DisplayName("Test purchase with very long address fields")
+    void testPurchaseWithLongAddressFields() throws Exception {
+        String longStreet = "A".repeat(255);
+        billingAddress.setStreet(longStreet);
+
+        mockMvc.perform(post("/api/checkout/purchase")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(purchase)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderTrackingNumber").exists());
+    }
 }
