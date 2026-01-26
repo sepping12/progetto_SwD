@@ -16,7 +16,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @TestPropertySource(properties = {
     "spring.data.rest.base-path=/api",
-    "allowed.origins=http://localhost:4200"
+    "allowed.origins=http://localhost:4200",
+    // Override CI environment variables to use H2 for tests
+    "spring.datasource.url=jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
+    "spring.datasource.driverClassName=org.h2.Driver",
+    "spring.datasource.username=sa",
+    "spring.datasource.password=",
+    "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect"
 })
 @DisplayName("MyDataRestConfig Integration Tests")
 class MyDataRestConfigTest {
