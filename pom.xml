@@ -154,18 +154,31 @@
 					</dependency>
 				</dependencies>
 				<configuration>
-					<!-- Target classes to mutate (main code) -->
+					<!-- Target classes to mutate (main code) - Focus on business logic -->
 					<targetClasses>
-						<param>com.shittu24.ecommerce.*</param>
+						<param>com.shittu24.ecommerce.service.*</param>
+						<param>com.shittu24.ecommerce.controller.*</param>
+						<param>com.shittu24.ecommerce.dto.*</param>
 					</targetClasses>
 					<!-- Test classes to run -->
 					<targetTests>
 						<param>com.shittu24.ecommerce.*</param>
 					</targetTests>
+					<!-- Exclude config, dao, entity, and application class -->
+					<excludedClasses>
+						<param>com.shittu24.ecommerce.config.*</param>
+						<param>com.shittu24.ecommerce.dao.*</param>
+						<param>com.shittu24.ecommerce.entity.*</param>
+						<param>com.shittu24.ecommerce.SpringBootEcommerceApplication</param>
+					</excludedClasses>
 					<!-- Mutation operators to use -->
 					<mutators>
 						<mutator>DEFAULTS</mutator>
 					</mutators>
+					<!-- Output verbose for debugging -->
+					<verbose>true</verbose>
+					<!-- Export line coverage only for covered code -->
+					<exportLineCoverage>true</exportLineCoverage>
 					<!-- Minimum mutation score required (%) - lowered for entity/model classes -->
 					<mutationThreshold>0</mutationThreshold>
 					<!-- Coverage threshold (%) -->
