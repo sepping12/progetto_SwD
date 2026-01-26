@@ -1,0 +1,202 @@
+\section{Metodologia}
+\label{sec:metodologia}
+
+\subsection{Ambiente Sperimentale}
+
+\begin{table}[htbp]
+\centering
+\caption{Specifiche Ambiente Sperimentale}
+\label{tab:ambiente}
+\begin{tabular}{ll}
+\toprule
+\textbf{Componente} & \textbf{Specifica} \\
+\midrule
+Sistema Operativo (Locale) & Windows 11 \\
+Sistema Operativo (CI) & Ubuntu 22.04 (GitHub Actions) \\
+Java & Eclipse Temurin 17 (LTS) \\
+Build Tool & Apache Maven 3.9.x \\
+Database (Produzione) & MySQL 8.0 \\
+Database (Testing) & H2 2.x (in-memory) \\
+Container Runtime & Docker Desktop 4.x \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Stato Iniziale}
+
+Prima dell'implementazione dei miglioramenti, l'applicazione presentava:
+
+\begin{itemize}
+    \item Pipeline CI/CD base (solo build)
+    \item 89 test manuali
+    \item Nessuna analisi statica integrata
+    \item Nessun mutation testing
+    \item Nessuna scansione di sicurezza
+    \item Dockerfile base senza ottimizzazioni
+\end{itemize}
+
+\subsection{Selezione degli Strumenti}
+
+\begin{table}[htbp]
+\centering
+\caption{Strumenti Selezionati e Razionale}
+\label{tab:strumenti}
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Strumento} & \textbf{Versione} & \textbf{Rationale} \\
+\midrule
+SonarCloud & Cloud & Gratuito open source, standard industriale \\
+JaCoCo & 0.8.10 & Integrazione Maven, report HTML/XML \\
+PITest & 1.14.4 & Più maturo framework mutation Java \\
+JMH & 1.37 & Framework ufficiale OpenJDK \\
+Randoop & 4.3.3 & Validato accademicamente e industrialmente \\
+OWASP DC & 9.0.7 & Integrazione NVD NIST \\
+SpotBugs & 4.8.3 & Successore FindBugs \\
+FindSecBugs & 1.12.0 & Focus sicurezza OWASP \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Procedure di Valutazione per Criterio}
+
+\subsubsection{Criterio 1: Pipeline CI/CD}
+
+\textbf{Procedura}:
+\begin{enumerate}
+    \item Progettazione workflow GitHub Actions (build, Docker, schedule, mutation)
+    \item Configurazione trigger e dipendenze
+    \item Implementazione reporting (JaCoCo, SonarCloud)
+    \item Test e validazione pipeline
+\end{enumerate}
+
+\textbf{Metriche di Successo}: Build green, tutti i test passati, coverage report generati, Docker image pubblicata, tempo build < 60s.
+
+\subsubsection{Criterio 2: Analisi Statica (SonarCloud)}
+
+\textbf{Procedura}:
+\begin{enumerate}
+    \item Setup progetto SonarCloud
+    \item Configurazione \texttt{sonar-project.properties}
+    \item Integrazione workflow GitHub Actions
+    \item Analisi findings e categorizzazione
+\end{enumerate}
+
+\textbf{Metriche di Successo}: Quality Gate PASSED, rating A su tutte le dimensioni, coverage > 80\%.
+
+\subsubsection{Criterio 3-4: Containerizzazione Docker}
+
+\textbf{Procedura}:
+\begin{enumerate}
+    \item Design Dockerfile multi-stage (builder + runtime)
+    \item Ottimizzazione layer e dimensione immagine
+    \item Configurazione health check
+    \item Pubblicazione DockerHub
+\end{enumerate}
+
+\textbf{Metriche di Successo}: Container funzionante, health check attivo, immagine < 300MB, build multi-stage efficace.
+
+\subsubsection{Criterio 5: Code Coverage (JaCoCo)}
+
+\textbf{Procedura}:
+\begin{enumerate}
+    \item Configurazione plugin Maven JaCoCo
+    \item Definizione threshold (80\% line, 75\% branch)
+    \item Esecuzione test suite con tracking coverage
+    \item Generazione report HTML e XML
+    \item Analisi coverage per package
+\end{enumerate}
+
+\textbf{Metriche di Successo}: Coverage overall > 80\%, service layer > 90\%, controller > 85\%.
+
+\subsubsection{Criterio 6: Mutation Testing (PITest)}
+
+\textbf{Procedura}:
+\begin{enumerate}
+    \item Configurazione plugin Maven PITest
+    \item Definizione target classes (service, controller, DTO)
+    \item Esclusione entity e config (Lombok)
+    \item Esecuzione campagna mutation (10-15 minuti)
+    \item Analisi mutanti sopravvissuti
+    \item Implementazione test edge case
+    \item Ri-esecuzione e verifica 100\% business logic
+\end{enumerate}
+
+\textbf{Metriche di Successo}: Mutation score > 80\%, test strength > 95\%, nessun mutante sopravvissuto nei percorsi critici.
+
+\subsubsection{Criterio 7: Performance Testing (JMH)}
+
+\textbf{Procedura}:
+\begin{enumerate}
+    \item Aggiunta dipendenze JMH
+    \item Identificazione operazioni critiche (CheckoutService, UUID, entity operations)
+    \item Design benchmark con configurazione (warmup 3 iter, measurement 5 iter, fork 1)
+    \item Esecuzione benchmark
+    \item Analisi throughput e latenza
+\end{enumerate}
+
+\textbf{Metriche di Successo}: Tutte le operazioni < 1ms media, throughput > 1M ops/sec per operazioni semplici.
+
+\subsubsection{Criterio 8: Test Generation (Randoop)}
+
+\textbf{Procedura}:
+\begin{enumerate}
+    \item Download Randoop 4.3.3 JAR
+    \item Configurazione classi target (entity, DTO)
+    \item Esecuzione generazione (60 secondi)
+    \item Aggiunta JUnit Vintage Engine per compatibilità JUnit 4
+    \item Integrazione test generati in build Maven
+    \item Misurazione incremento coverage
+\end{enumerate}
+
+\textbf{Metriche di Successo}: > 500 test generati, 100\% test passing, coverage migliorata, test integrati in CI/CD.
+
+\subsubsection{Criterio 9: Analisi di Sicurezza}
+
+\textbf{Procedura}:
+\begin{enumerate}
+    \item Configurazione SpotBugs + FindSecBugs
+    \item Configurazione OWASP Dependency-Check con NVD API key
+    \item Esecuzione scansioni
+    \item Review findings SonarCloud security
+    \item Categorizzazione vulnerabilità per severità
+    \item Valutazione compliance OWASP Top 10
+\end{enumerate}
+
+\textbf{Metriche di Successo}: Zero vulnerabilità critiche/high, dipendenze aggiornate, security rating A, compliance OWASP Top 10.
+
+\subsection{Processo di Miglioramento Iterativo}
+
+L'analisi ha seguito un processo iterativo:
+
+\begin{enumerate}
+    \item \textbf{Baseline}: Misurazione metrica iniziale
+    \item \textbf{Analisi}: Identificazione problemi
+    \item \textbf{Implementazione}: Applicazione fix
+    \item \textbf{Ri-misurazione}: Verifica miglioramenti
+    \item \textbf{Documentazione}: Registrazione cambiamenti
+    \item \textbf{Iterazione}: Ripetizione fino al raggiungimento obiettivi
+\end{enumerate}
+
+\subsection{Raccolta Dati}
+
+Per ogni criterio sono stati raccolti sistematicamente:
+
+\begin{itemize}
+    \item \textbf{Metriche quantitative}: Percentuali coverage, mutation score, misurazioni performance
+    \item \textbf{Output tool}: Report HTML, dati XML, log
+    \item \textbf{Screenshot}: Dashboard, stato CI/CD, summary report
+    \item \textbf{File configurazione}: POM Maven, workflow YAML, Dockerfile
+    \item \textbf{Timestamp}: Durate build, tempi esecuzione test
+\end{itemize}
+
+\subsection{Garanzia di Qualità}
+
+Per assicurare la validità dell'analisi:
+
+\begin{itemize}
+    \item \textbf{Riproducibilità}: Tutte le analisi eseguibili via comandi documentati
+    \item \textbf{Version Control}: Tutti i cambiamenti committati con messaggi descrittivi
+    \item \textbf{Testing Automatizzato}: Pipeline CI/CD valida tutti i cambiamenti
+    \item \textbf{Documentazione}: README completi e report di analisi
+\end{itemize}

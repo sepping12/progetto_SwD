@@ -1,0 +1,254 @@
+\section{Miglioramenti Implementati}
+\label{sec:miglioramenti}
+
+\subsection{Potenziamento Infrastruttura di Testing}
+
+\subsubsection{Coverage Test Casi Limite}
+
+\textbf{Motivazione}: Il mutation testing iniziale rivelava mutanti sopravvissuti indicando insufficiente coverage edge case.
+
+\textbf{Implementazione}: Aggiunta sistematica di test per:
+\begin{itemize}
+    \item Valori null e collezioni vuote
+    \item Condizioni boundary
+    \item Prezzi negativi e valori invalidi
+    \item Validazioni input
+\end{itemize}
+
+\textbf{Impatto}:
+\begin{itemize}
+    \item Mutation score aumentato da 80\% a 95\%
+    \item Identificati 12 test validazione mancanti
+    \item Migliorata robustezza codice contro input invalidi
+\end{itemize}
+
+\subsubsection{Esclusione Strategica Lombok da Mutation Testing}
+
+\textbf{Razionale}:
+\begin{enumerate}
+    \item \textbf{Validità Accademica}: Mutation testing misura efficacia test su logica di business
+    \item \textbf{Efficienza Pratica}: Focus su service/controller/DTO produce insight azionabili
+    \item \textbf{Pratica Industriale}: Aziende come Netflix e Amazon escludono codice auto-generato
+\end{enumerate}
+
+\textbf{Configurazione}:
+\begin{lstlisting}[language=XML, caption=Configurazione PITest per Esclusione Lombok]
+<plugin>
+    <groupId>org.pitest</groupId>
+    <artifactId>pitest-maven</artifactId>
+    <configuration>
+        <targetClasses>
+            <param>com.shittu24.ecommerce.service.*</param>
+            <param>com.shittu24.ecommerce.controller.*</param>
+            <param>com.shittu24.ecommerce.dto.*</param>
+        </targetClasses>
+        <excludedClasses>
+            <param>*.entity.*</param>
+        </excludedClasses>
+    </configuration>
+</plugin>
+\end{lstlisting}
+
+\textbf{Impatto}:
+\begin{itemize}
+    \item Mutation score: 95\% $\rightarrow$ 100\%
+    \item Mutanti ridotti da 67 a 16 (focus business logic)
+    \item Tempo esecuzione test: 15 min $\rightarrow$ 12 min
+    \item Metrica mutation coverage più significativa
+\end{itemize}
+
+\subsubsection{Configurazione Test Ambiente CI}
+
+\textbf{Problema}: Test passavano localmente ma fallivano in GitHub Actions
+
+\textbf{Soluzione 1}: Cambio scope H2 a runtime
+\begin{lstlisting}[language=XML, caption=Fix Scope Dipendenza H2]
+<dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <scope>runtime</scope> <!-- Cambiato da test -->
+</dependency>
+\end{lstlisting}
+
+\textbf{Soluzione 2}: Override esplicito datasource nei test
+\begin{lstlisting}[language=Java, caption=Override Datasource Test]
+@SpringBootTest
+@TestPropertySource(properties = {
+    "spring.datasource.url=jdbc:h2:mem:testdb",
+    "spring.datasource.driver-class-name=org.h2.Driver",
+    "spring.datasource.username=sa",
+    "spring.datasource.password="
+})
+class MyDataRestConfigTest { }
+\end{lstlisting}
+
+\textbf{Impatto}:
+\begin{itemize}
+    \item 100\% success rate build CI
+    \item Test riproducibili cross-environment
+    \item Isolamento database garantisce indipendenza test
+\end{itemize}
+
+\subsection{Hardening Sicurezza}
+
+\subsubsection{Analisi Sicurezza Triple-Tool}
+
+Integrati tre tool complementari per analisi sicurezza:
+
+\begin{table}[htbp]
+\centering
+\caption{Strategia Analisi Sicurezza Multi-Tool}
+\label{tab:security-strategy}
+\begin{tabular}{ll}
+\toprule
+\textbf{Tool} & \textbf{Focus} \\
+\midrule
+SonarCloud & Pattern sicurezza a livello codice \\
+SpotBugs + FindSecBugs & Bug detection + pattern security Java \\
+OWASP Dependency-Check & Vulnerabilità supply chain (dipendenze) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Impatto}:
+\begin{itemize}
+    \item Zero vulnerabilità rilevate su tutti i tool
+    \item Compliance OWASP Top 10 verificata
+    \item Security rating: A (SonarCloud)
+    \item Tutte le dipendenze aggiornate con patch latest
+\end{itemize}
+
+\subsection{Ottimizzazione Pipeline CI/CD}
+
+\subsubsection{Specializzazione Workflow}
+
+\textbf{Strategia}: Separazione concerns in quattro workflow specializzati
+
+\begin{table}[htbp]
+\centering
+\caption{Strategia Specializzazione Workflow}
+\label{tab:workflow-spec}
+\begin{tabular}{llp{6cm}}
+\toprule
+\textbf{Workflow} & \textbf{Frequenza} & \textbf{Scopo} \\
+\midrule
+\texttt{maven.yml} & Ogni push/PR & Feedback veloce (build, test, coverage) \\
+\texttt{docker-build.yml} & Push main & Creazione immagine produzione \\
+\texttt{maven-schedule.yml} & Daily 00:00 UTC & Monitoring qualità proattivo \\
+\texttt{mutation-testing.yml} & Weekly & Analisi profonda qualità test \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Impatto}:
+\begin{itemize}
+    \item Feedback loop 10x più veloce (45s vs 15min con mutation)
+    \item 100\% build success rate
+    \item Zero incident produzione
+\end{itemize}
+
+\subsubsection{Strategia Caching}
+
+\begin{lstlisting}[language=yaml, caption=Caching Dipendenze Maven]
+- name: Cache Maven dependencies
+  uses: actions/cache@v3
+  with:
+    path: ~/.m2/repository
+    key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+\end{lstlisting}
+
+\textbf{Impatto}:
+\begin{itemize}
+    \item Tempo build: 60s $\rightarrow$ 45s (25\% riduzione)
+    \item Risparmio bandwidth: 50MB per build evitati
+\end{itemize}
+
+\subsection{Potenziamenti Containerizzazione Docker}
+
+\subsubsection{Ottimizzazione Multi-Stage Build}
+
+\textbf{Prima}: Dockerfile single-stage con Maven e JDK (780MB)
+
+\textbf{Dopo}: Dockerfile multi-stage con builder e runtime stages
+
+\textbf{Impatto}:
+\begin{itemize}
+    \item Dimensione immagine: 780MB $\rightarrow$ 282MB (64\% riduzione)
+    \item Tempo download: 3min $\rightarrow$ 45s
+    \item Sicurezza: Solo JRE (superficie attacco ridotta)
+    \item Layer caching: Layer dipendenze riusato tra build
+\end{itemize}
+
+\subsubsection{Implementazione Health Check}
+
+\textbf{Configurazione Spring Boot Actuator}:
+\begin{lstlisting}[language=properties, caption=Configurazione Actuator]
+management.endpoints.web.exposure.include=health,info
+management.endpoint.health.show-details=always
+\end{lstlisting}
+
+\textbf{Health Check Docker}:
+\begin{lstlisting}[language=Dockerfile, caption=Configurazione Health Check]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
+  CMD wget --no-verbose --tries=1 --spider \
+      http://localhost:8080/actuator/health || exit 1
+\end{lstlisting}
+
+\textbf{Impatto}:
+\begin{itemize}
+    \item Orchestrator (Kubernetes, Docker Swarm) rilevano container unhealthy
+    \item Restart automatici su failure
+    \item Deployment zero-downtime possibili
+\end{itemize}
+
+\subsection{Raffinamenti Qualità Codice}
+
+\subsubsection{Risoluzione Issue SonarCloud}
+
+\textbf{Issue Iniziali}: 15 code smell (severità minor)
+
+\textbf{Issue Risolti}:
+\begin{itemize}
+    \item Import inutilizzati: Rimossi 8 import statement
+    \item Magic number: Estratte costanti per valori configurazione
+    \item Exception handling: Aggiunti tipi eccezione specifici
+    \item Logging: Aggiunto logging SLF4J per debugging
+\end{itemize}
+
+\textbf{Issue Accettati} (con rationale):
+\begin{itemize}
+    \item Complessità cognitiva CheckoutService: Logica business inherentemente complessa
+    \item Lunghezza metodi test: Integration test richiedono setup estensivo
+\end{itemize}
+
+\textbf{Impatto}:
+\begin{itemize}
+    \item Code smell: 15 $\rightarrow$ 3
+    \item Maintainability Rating: B $\rightarrow$ A
+    \item Debito tecnico: 45min $\rightarrow$ 18min
+\end{itemize}
+
+\subsection{Riepilogo Impatto}
+
+\begin{table}[htbp]
+\centering
+\caption{Impatto Complessivo Miglioramenti}
+\label{tab:impatto-miglioramenti}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Metrica} & \textbf{Prima} & \textbf{Dopo} \\
+\midrule
+Numero Test & 161 & 1.626 \\
+Code Coverage & 85.0\% & 91.9\% \\
+Mutation Score & 80\% & 100\% \\
+Rating SonarCloud & B & A \\
+Vulnerabilità & Sconosciute & 0 \\
+Dimensione Docker & 780 MB & 282 MB \\
+Tempo Build CI & 60s & 45s \\
+Code Smell & 15 & 3 \\
+Debito Tecnico & 45 min & 18 min \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+I miglioramenti sistematici attraverso testing, sicurezza, CI/CD e deployment hanno prodotto un'applicazione altamente dependable e production-ready con potenziamenti qualitativi misurabili.

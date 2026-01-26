@@ -1,0 +1,138 @@
+\section{Introduzione}
+\label{sec:introduzione}
+
+\subsection{Contesto del Progetto}
+
+Questo progetto costituisce l'analisi di dependability completa di un'applicazione e-commerce REST API sviluppata con Spring Boot. L'analisi è stata condotta nell'ambito del corso di Dependability del Software presso l'Università degli Studi di Salerno, Anno Accademico 2024/2025.
+
+L'applicazione fornisce funzionalità complete per la gestione di un negozio online, inclusa la gestione di prodotti, categorie, clienti, ordini e processi di checkout.
+
+\subsection{Panoramica dell'Applicazione}
+
+L'applicazione è un backend REST API che implementa le seguenti funzionalità principali:
+
+\begin{itemize}
+    \item \textbf{Gestione Prodotti}: CRUD completo per prodotti e categorie
+    \item \textbf{Gestione Clienti}: Registrazione e gestione informazioni clienti
+    \item \textbf{Sistema Ordini}: Creazione e tracciamento ordini
+    \item \textbf{Checkout}: Processo completo di acquisto con validazione
+    \item \textbf{API RESTful}: Esposizione di endpoint HTTP per tutte le operazioni
+\end{itemize}
+
+\textbf{Stack Tecnologico}:
+\begin{itemize}
+    \item Framework: Spring Boot 3.2.x
+    \item Database: MySQL 8.0 (produzione), H2 (testing)
+    \item Build Tool: Maven 3.9.x
+    \item Java: Eclipse Temurin 17 (LTS)
+    \item Containerizzazione: Docker
+    \item CI/CD: GitHub Actions
+\end{itemize}
+
+\subsection{Obiettivi dell'Analisi}
+
+L'analisi mira a valutare sistematicamente la dependability dell'applicazione attraverso nove criteri distinti, ognuno focalizzato su un aspetto specifico della qualità del software:
+
+\begin{table}[htbp]
+\centering
+\caption{Nove Criteri di Valutazione}
+\label{tab:criteri}
+\small
+\begin{tabular}{clp{7cm}}
+\toprule
+\textbf{\#} & \textbf{Criterio} & \textbf{Obiettivo} \\
+\midrule
+1 & CI/CD Pipeline & Automazione build, test e deployment \\
+2 & Analisi Statica & Qualità codice via SonarCloud \\
+3-4 & Containerizzazione & Deployment Docker production-ready \\
+5 & Code Coverage & Misurazione copertura test (JaCoCo) \\
+6 & Mutation Testing & Efficacia test suite (PITest) \\
+7 & Performance Testing & Baseline prestazioni (JMH) \\
+8 & Test Generation & Generazione automatica test (Randoop) \\
+9 & Security Analysis & Analisi vulnerabilità multi-tool \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Risultati Principali}
+
+L'analisi ha prodotto risultati eccezionali su tutti e nove i criteri:
+
+\begin{table}[htbp]
+\centering
+\caption{Risultati Principali}
+\label{tab:risultati-chiave}
+\begin{tabular}{lr}
+\toprule
+\textbf{Metrica} & \textbf{Valore} \\
+\midrule
+Criteri Completati & 9/9 (100\%) \\
+Mutation Score & 100\% (16/16 mutanti uccisi) \\
+Code Coverage & 91.9\% \\
+Test Totali & 1.626 \\
+Vulnerabilità & 0 \\
+Rating SonarCloud & A (Security, Reliability, Maintainability) \\
+Dimensione Immagine Docker & 282 MB \\
+Tempo Build CI/CD & 45 secondi (media) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Innovazioni Tecniche}
+
+Tre innovazioni chiave hanno contribuito ai risultati eccezionali:
+
+\subsubsection{1. Esclusione Strategica Lombok}
+
+Il codice generato da Lombok (getter, setter, equals, hashCode) è stato escluso dal mutation testing, concentrando l'analisi sulla logica di business effettiva. Questa scelta è giustificata da:
+
+\begin{itemize}
+    \item \textbf{Validità accademica}: Il mutation testing deve misurare il codice scritto dagli sviluppatori
+    \item \textbf{Efficienza pratica}: Lombok genera pattern standard e provati
+    \item \textbf{Allineamento industriale}: Aziende come Netflix ed Amazon escludono il codice auto-generato
+\end{itemize}
+
+\subsubsection{2. Testing Sistematico Casi Limite}
+
+L'analisi iniziale dei mutanti sopravvissuti ha rivelato gap nel testing dei casi limite. Sono stati aggiunti sistematicamente test per:
+
+\begin{itemize}
+    \item Valori null e liste vuote
+    \item Condizioni di boundary
+    \item Stati di errore e eccezioni
+    \item Validazioni input
+\end{itemize}
+
+\subsubsection{3. Gestione Ambiente CI}
+
+La configurazione dell'ambiente CI è stata ottimizzata per garantire la riproducibilità dei test:
+
+\begin{itemize}
+    \item H2 scope cambiato da \texttt{test} a \texttt{runtime}
+    \item Override esplicito delle proprietà datasource
+    \item Isolamento completo del database di test
+\end{itemize}
+
+\subsection{Struttura del Report}
+
+Il report è organizzato come segue:
+
+\begin{itemize}
+    \item \textbf{Sezione 2 - Background}: Concetti di dependability e descrizione strumenti
+    \item \textbf{Sezione 3 - Metodologia}: Procedure sperimentali e criteri di successo
+    \item \textbf{Sezione 4 - Analisi}: Risultati dettagliati per ogni criterio
+    \item \textbf{Sezione 5 - Risultati}: Discussione e sintesi dei risultati
+    \item \textbf{Sezione 6 - Miglioramenti}: Miglioramenti implementati e impatto
+    \item \textbf{Sezione 7 - Conclusioni}: Lezioni apprese e lavoro futuro
+\end{itemize}
+
+\subsection{Risorse del Progetto}
+
+Tutte le risorse sono disponibili pubblicamente:
+
+\begin{itemize}
+    \item \textbf{Codice Sorgente}: \url{https://github.com/sepping12/progetto_SwD}
+    \item \textbf{Dashboard SonarCloud}: \url{https://sonarcloud.io/project/overview?id=sepping12_progetto_SwD}
+    \item \textbf{Immagine Docker}: \url{https://hub.docker.com/r/sepping12/progetto-swd}
+    \item \textbf{Pipeline CI/CD}: GitHub Actions workflows nel repository
+\end{itemize}

@@ -1,0 +1,150 @@
+\section{Background}
+\label{sec:background}
+
+\subsection{Dependability del Software}
+
+La dependability del software è definita come la capacità di un sistema di fornire servizi affidabili e fidati. Comprende sei attributi principali:
+
+\begin{itemize}
+    \item \textbf{Affidabilità (Reliability)}: Continuità del servizio corretto
+    \item \textbf{Disponibilità (Availability)}: Prontezza per l'uso corretto
+    \item \textbf{Sicurezza (Safety)}: Assenza di conseguenze catastrofiche
+    \item \textbf{Security}: Protezione contro attacchi intenzionali
+    \item \textbf{Manutenibilità}: Facilità di manutenzione e evoluzione
+    \item \textbf{Testabilità}: Facilità di verifica del comportamento
+\end{itemize}
+
+\subsection{Mutation Testing}
+
+Il mutation testing è una tecnica di test avanzata che valuta l'efficacia di una test suite introducendo difetti artificiali (mutanti) nel codice. Il \emph{mutation score} è calcolato come:
+
+\begin{equation}
+\text{Mutation Score} = \frac{\text{Mutanti Uccisi}}{\text{Mutanti Totali} - \text{NO\_COVERAGE}} \times 100\%
+\end{equation}
+
+\begin{table}[htbp]
+\centering
+\caption{Interpretazione Mutation Score}
+\label{tab:mutation-interpretation}
+\begin{tabular}{ll}
+\toprule
+\textbf{Score} & \textbf{Interpretazione} \\
+\midrule
+< 40\% & Insufficiente - test deboli \\
+40-60\% & Sufficiente - miglioramento necessario \\
+60-80\% & Buono - qualità adeguata \\
+> 80\% & Eccellente - test molto efficaci \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Strumenti di Analisi}
+
+\subsubsection{SonarCloud}
+
+Piattaforma cloud per l'analisi statica del codice che fornisce:
+\begin{itemize}
+    \item Rating qualità (A-E) per Security, Reliability, Maintainability
+    \item Quality Gate configurabili
+    \item Integrazione con CI/CD
+    \item Metriche: bug, vulnerabilità, code smell, coverage, duplicazione, complessità
+\end{itemize}
+
+\subsubsection{JaCoCo (Java Code Coverage)}
+
+Tool per la misurazione della copertura del codice che traccia:
+\begin{itemize}
+    \item \textbf{Line Coverage}: Percentuale linee eseguite
+    \item \textbf{Branch Coverage}: Percentuale branch decisionali eseguiti
+    \item \textbf{Method Coverage}: Percentuale metodi invocati
+    \item \textbf{Class Coverage}: Percentuale classi utilizzate
+\end{itemize}
+
+\subsubsection{PITest (Mutation Testing)}
+
+Framework di mutation testing per Java che:
+\begin{itemize}
+    \item Genera mutanti usando operatori di mutazione (conditionals, math, return values)
+    \item Esegue la test suite per ogni mutante
+    \item Classifica i mutanti: KILLED, SURVIVED, NO\_COVERAGE
+    \item Supporta esecuzione parallela per prestazioni
+\end{itemize}
+
+\subsubsection{JMH (Java Microbenchmark Harness)}
+
+Framework ufficiale OpenJDK per microbenchmarking che offre:
+\begin{itemize}
+    \item Misurazione throughput e latenza
+    \item Warmup automatico della JVM
+    \item Fork isolation per risultati accurati
+    \item Analisi statistica con deviazione standard
+\end{itemize}
+
+\subsubsection{Randoop}
+
+Tool di generazione automatica di test che:
+\begin{itemize}
+    \item Genera test casuali feedback-directed
+    \item Produce regression test e error-revealing test
+    \item Supporta output JUnit
+    \item Utile per scoprire edge case non considerati
+\end{itemize}
+
+\subsubsection{SpotBugs e FindSecBugs}
+
+SpotBugs è il successore di FindBugs per la detection di bug. FindSecBugs è un plugin che aggiunge pattern di sicurezza specifici allineati con OWASP.
+
+\subsubsection{OWASP Dependency-Check}
+
+Tool di analisi delle dipendenze che:
+\begin{itemize}
+    \item Interroga il database NVD (National Vulnerability Database)
+    \item Identifica CVE (Common Vulnerabilities and Exposures)
+    \item Calcola CVSS score per prioritizzazione
+    \item Supporta soppressione falsi positivi
+\end{itemize}
+
+\subsection{Docker e CI/CD}
+
+\subsubsection{Docker Multi-Stage Build}
+
+Pattern di containerizzazione che separa build e runtime:
+\begin{itemize}
+    \item \textbf{Stage 1 (Builder)}: Compilazione con Maven + JDK
+    \item \textbf{Stage 2 (Runtime)}: Esecuzione con solo JRE
+    \item \textbf{Vantaggi}: Riduzione dimensione immagine, sicurezza, layer caching
+\end{itemize}
+
+\subsubsection{GitHub Actions}
+
+Piattaforma CI/CD nativa GitHub che offre:
+\begin{itemize}
+    \item Workflow definiti in YAML
+    \item Trigger configurabili (push, PR, schedule, manual)
+    \item Matrix build per test multi-configurazione
+    \item Caching dipendenze per prestazioni
+\end{itemize}
+
+\subsection{Spring Boot e Project Lombok}
+
+\subsubsection{Spring Boot}
+
+Framework Java per applicazioni enterprise che implementa:
+\begin{itemize}
+    \item Convention over configuration
+    \item Embedded server (Tomcat, Jetty)
+    \item Auto-configuration basata su dipendenze
+    \item Spring Data JPA per persistenza
+    \item Actuator per monitoring e health check
+\end{itemize}
+
+\subsubsection{Project Lombok}
+
+Libreria che riduce boilerplate code tramite annotazioni:
+\begin{itemize}
+    \item \texttt{@Data}: Genera getter, setter, toString, equals, hashCode
+    \item \texttt{@Builder}: Pattern builder per costruzione oggetti
+    \item \texttt{@NoArgsConstructor}, \texttt{@AllArgsConstructor}: Costruttori automatici
+\end{itemize}
+
+\textbf{Considerazione per Mutation Testing}: Il codice generato da Lombok, essendo standard e provato, è escluso dall'analisi di mutation testing per concentrarsi sulla logica di business effettiva.
