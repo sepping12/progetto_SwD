@@ -2,7 +2,4 @@ version: 2
 
 paths-ignore:
   - "docs/report/sections/06-improvements.tex"
-
-matches-ignore:
-  - name: Suppress SonarCloud projectKey false positive
-    match: sonar.projectKey=sepping12_progetto_SwD
+  - "docs/report/**/*.tex"
