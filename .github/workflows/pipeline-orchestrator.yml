@@ -1,0 +1,142 @@
+name: Complete Pipeline Orchestrator
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  orchestrate:
+    name: Sequential Workflow Execution
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📊 Step 1 - Run CI Pipeline
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            console.log('🚀 Triggering CI Pipeline...');
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'ci.yml',
+              ref: 'main'
+            });
+            console.log('✅ CI Pipeline triggered');
+
+      - name: ⏳ Wait for CI Pipeline
+        run: |
+          echo "Waiting 7 minutes for CI Pipeline to complete..."
+          sleep 420
+
+      - name: 🐳 Step 2 - Run Docker Build
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            console.log('🚀 Triggering Docker Build...');
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'build.yml',
+              ref: 'main'
+            });
+            console.log('✅ Docker Build triggered');
+
+      - name: ⏳ Wait for Docker Build
+        run: |
+          echo "Waiting 4 minutes for Docker Build to complete..."
+          sleep 240
+
+      - name: 🔒 Step 3 - Run Security Scan
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            console.log('🚀 Triggering Security Scan...');
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'security.yml',
+              ref: 'main'
+            });
+            console.log('✅ Security Scan triggered');
+
+      - name: ⏳ Wait for Security Scan
+        run: |
+          echo "Waiting 16 minutes for Security Scan to complete..."
+          sleep 960
+
+      - name: 🧬 Step 4 - Run Mutation Testing
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            console.log('🚀 Triggering Mutation Testing...');
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'mutation-testing.yml',
+              ref: 'main'
+            });
+            console.log('✅ Mutation Testing triggered');
+
+      - name: ⏳ Wait for Mutation Testing
+        run: |
+          echo "Waiting 12 minutes for Mutation Testing to complete..."
+          sleep 720
+
+      - name: 🏎️ Step 5 - Run Performance Regression
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            console.log('🚀 Triggering Performance Regression Testing...');
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'performance-regression.yml',
+              ref: 'main'
+            });
+            console.log('✅ Performance Regression Testing triggered');
+
+      - name: 📝 Create Pipeline Summary
+        run: |
+          echo "## 🎯 Complete Pipeline Orchestrator" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Workflows Executed Sequentially" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Step | Workflow | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 1️⃣ | CI Pipeline | ✅ Triggered |" >> $GITHUB_STEP_SUMMARY
+          echo "| 2️⃣ | Docker Build | ✅ Triggered |" >> $GITHUB_STEP_SUMMARY
+          echo "| 3️⃣ | Security Scan | ✅ Triggered |" >> $GITHUB_STEP_SUMMARY
+          echo "| 4️⃣ | Mutation Testing | ✅ Triggered |" >> $GITHUB_STEP_SUMMARY
+          echo "| 5️⃣ | Performance Regression | ✅ Triggered |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Total Execution Time" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Estimated Total**: ~40 minutes" >> $GITHUB_STEP_SUMMARY
+          echo "- **CI Pipeline**: ~7 min" >> $GITHUB_STEP_SUMMARY
+          echo "- **Docker Build**: ~4 min" >> $GITHUB_STEP_SUMMARY
+          echo "- **Security Scan**: ~16 min" >> $GITHUB_STEP_SUMMARY
+          echo "- **Mutation Testing**: ~12 min" >> $GITHUB_STEP_SUMMARY
+          echo "- **Performance Regression**: ~1 min" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ℹ️ Notes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This orchestrator triggers all workflows sequentially to ensure complete analysis." >> $GITHUB_STEP_SUMMARY
+          echo "Check the Actions tab for individual workflow results." >> $GITHUB_STEP_SUMMARY
+
+      - name: 🎉 Pipeline Complete
+        run: |
+          echo "✅ All workflows triggered successfully!"
+          echo "🔗 View results in GitHub Actions tab"
