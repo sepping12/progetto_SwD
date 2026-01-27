@@ -121,4 +121,25 @@ class OrderTest {
         
         assertThat(order.getOrderItems()).hasSize(2);
     }
+
+    @Test
+    @DisplayName("Should handle null orderItems when adding first item")
+    void testAddOrderItemWhenOrderItemsIsNull() {
+        // Create a new order with null orderItems explicitly
+        Order newOrder = new Order();
+        // Ensure orderItems is null initially (already is by default)
+        newOrder.setOrderItems(null);
+        
+        OrderItem item = new OrderItem();
+        item.setQuantity(1);
+        
+        // This will trigger the if (orderItems == null) branch
+        newOrder.add(item);
+        
+        // Verify the item was added and collection was initialized
+        assertThat(newOrder.getOrderItems()).isNotNull();
+        assertThat(newOrder.getOrderItems()).hasSize(1);
+        assertThat(newOrder.getOrderItems()).contains(item);
+        assertThat(item.getOrder()).isEqualTo(newOrder);
+    }
 }

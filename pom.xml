@@ -154,21 +154,21 @@
 					</dependency>
 				</dependencies>
 				<configuration>
-					<!-- Target classes to mutate (main code) - Focus on business logic -->
+					<!-- Target classes to mutate (main code) - Expanded to include dao, entity, exclude config -->
 					<targetClasses>
 						<param>com.shittu24.ecommerce.service.*</param>
 						<param>com.shittu24.ecommerce.controller.*</param>
 						<param>com.shittu24.ecommerce.dto.*</param>
+						<param>com.shittu24.ecommerce.dao.*</param>
+						<param>com.shittu24.ecommerce.entity.*</param>
 					</targetClasses>
 					<!-- Test classes to run -->
 					<targetTests>
 						<param>com.shittu24.ecommerce.*</param>
 					</targetTests>
-					<!-- Exclude config, dao, entity, and application class -->
+					<!-- Exclude config (infrastructure code) and application class -->
 					<excludedClasses>
 						<param>com.shittu24.ecommerce.config.*</param>
-						<param>com.shittu24.ecommerce.dao.*</param>
-						<param>com.shittu24.ecommerce.entity.*</param>
 						<param>com.shittu24.ecommerce.SpringBootEcommerceApplication</param>
 					</excludedClasses>
 					<!-- Exclude Lombok-generated methods that are hard to test meaningfully -->
@@ -178,9 +178,9 @@
 						<param>toString</param>
 						<param>canEqual</param>
 					</excludedMethods>
-					<!-- Mutation operators to use -->
+					<!-- Mutation operators to use - Using STRONGER set for more comprehensive testing -->
 					<mutators>
-						<mutator>DEFAULTS</mutator>
+						<mutator>STRONGER</mutator>
 					</mutators>
 					<!-- Output verbose for debugging -->
 					<verbose>true</verbose>

@@ -95,4 +95,25 @@ class CustomerTest {
         customer.setId(1L);
         assertThat(customer.getId()).isEqualTo(1L);
     }
+
+    @Test
+    @DisplayName("Should handle null orders when adding first order")
+    void testAddOrderWhenOrdersIsNull() {
+        // Create a new customer with null orders explicitly
+        Customer newCustomer = new Customer();
+        // Ensure orders is null initially (already is by default)
+        newCustomer.setOrders(null);
+        
+        Order newOrder = new Order();
+        newOrder.setOrderTrackingNumber("TEST-123");
+        
+        // This will trigger the if (orders == null) branch
+        newCustomer.add(newOrder);
+        
+        // Verify the order was added and collection was initialized
+        assertThat(newCustomer.getOrders()).isNotNull();
+        assertThat(newCustomer.getOrders()).hasSize(1);
+        assertThat(newCustomer.getOrders()).contains(newOrder);
+        assertThat(newOrder.getCustomer()).isEqualTo(newCustomer);
+    }
 }
