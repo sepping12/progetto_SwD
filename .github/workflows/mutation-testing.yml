@@ -137,20 +137,15 @@ jobs:
               interpretation = '❌ **Poor** - Test suite needs significant improvements.';
             }
             
-            const comment = `## ${emoji} Mutation Testing Results
-            
-**Mutation Score**: **${mutationScore}%**
-
-**Mutants Killed**: ${mutantsKilled}/${mutantsTotal}
-
-### Interpretation
-${interpretation}
-
-📊 View the [detailed PITest report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) in the artifacts.
-
----
-*Mutation testing evaluates test quality by introducing artificial bugs and checking if tests catch them.*
-            `;
+            const comment = '## ' + emoji + ' Mutation Testing Results\n\n' +
+              '**Mutation Score**: **' + mutationScore + '%**\n\n' +
+              '**Mutants Killed**: ' + mutantsKilled + '/' + mutantsTotal + '\n\n' +
+              '### Interpretation\n' + interpretation + '\n\n' +
+              '📊 View the [detailed PITest report](https://github.com/' + 
+              context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + 
+              context.runId + ') in the artifacts.\n\n' +
+              '---\n' +
+              '*Mutation testing evaluates test quality by introducing artificial bugs and checking if tests catch them.*';
             
             if (context.payload.pull_request) {
               github.rest.issues.createComment({
