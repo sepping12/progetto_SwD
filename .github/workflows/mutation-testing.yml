@@ -55,9 +55,18 @@ jobs:
       - name: Parse Mutation Score
         id: mutation-score
         run: |
-          if [ -f target/pit-reports/mutations.xml ]; then
-            # Estrai mutation score dal report XML
-            SCORE=$(grep -oP 'mutationCoverage="\K[^"]+' target/pit-reports/mutations.xml | head -1)
+          # PITest crea report in sottocartelle con timestamp
+          MUTATIONS_XML=$(find target/pit-reports -name "mutations.xml" -type f | head -1)
+          INDEX_HTML=$(find target/pit-reports -name "index.html" -type f | head -1)
+          
+          if [ -f "$INDEX_HTML" ]; then
+            # Estrai mutation score dall'index.html (formato: "XX%")
+            SCORE=$(grep -oP '\d+(?=%)' "$INDEX_HTML" | head -1)
+            echo "score=$SCORE" >> $GITHUB_OUTPUT
+            echo "✅ Mutation Score: $SCORE%"
+          elif [ -f "$MUTATIONS_XML" ]; then
+            # Fallback: estrai da XML
+            SCORE=$(grep -oP 'mutationCoverage="\K[^"]+' "$MUTATIONS_XML" | head -1)
             echo "score=$SCORE" >> $GITHUB_OUTPUT
             echo "✅ Mutation Score: $SCORE%"
           else
@@ -162,21 +171,29 @@ jobs:
           echo "## 🔬 Mutation Testing Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ -f target/pit-reports/mutations.xml ]; then
-            SCORE=$(grep -oP 'mutationCoverage="\K[^"]+' target/pit-reports/mutations.xml | head -1)
+          # Cerca il file index.html nella struttura PITest
+          INDEX_HTML=$(find target/pit-reports -name "index.html" -type f | head -1)
+          MUTATIONS_XML=$(find target/pit-reports -name "mutations.xml" -type f | head -1)
+          
+          if [ -f "$INDEX_HTML" ]; then
+            # Estrai mutation score dall'HTML
+            SCORE=$(grep -oP '\d+(?=%)' "$INDEX_HTML" | head -1)
             echo "### Mutation Score: **${SCORE}%**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             
             # Aggiungi interpretazione
-            if (( $(echo "$SCORE >= 80" | bc -l) )); then
+            if [ "$SCORE" -ge 80 ]; then
               echo "🎯 **Excellent** - Your tests are highly effective!" >> $GITHUB_STEP_SUMMARY
-            elif (( $(echo "$SCORE >= 60" | bc -l) )); then
+            elif [ "$SCORE" -ge 60 ]; then
               echo "✅ **Good** - Tests are effective." >> $GITHUB_STEP_SUMMARY
-            elif (( $(echo "$SCORE >= 40" | bc -l) )); then
+            elif [ "$SCORE" -ge 40 ]; then
               echo "⚠️ **Fair** - Consider strengthening your test suite." >> $GITHUB_STEP_SUMMARY
             else
               echo "❌ **Poor** - Test suite needs improvements." >> $GITHUB_STEP_SUMMARY
             fi
+          elif [ -f "$MUTATIONS_XML" ]; then
+            SCORE=$(grep -oP 'mutationCoverage="\K[^"]+' "$MUTATIONS_XML" | head -1)
+            echo "### Mutation Score: **${SCORE}%**" >> $GITHUB_STEP_SUMMARY
           else
             echo "⚠️ Mutation report not generated" >> $GITHUB_STEP_SUMMARY
           fi
@@ -191,13 +208,27 @@ jobs:
       - name: Fail if Mutation Score Below Threshold
         if: success()
         run: |
-          if [ -f target/pit-reports/mutations.xml ]; then
-            SCORE=$(grep -oP 'mutationCoverage="\K[^"]+' target/pit-reports/mutations.xml | head -1)
+          # Cerca il file index.html nella struttura PITest
+          INDEX_HTML=$(find target/pit-reports -name "index.html" -type f | head -1)
+          MUTATIONS_XML=$(find target/pit-reports -name "mutations.xml" -type f | head -1)
+          
+          if [ -f "$INDEX_HTML" ]; then
+            SCORE=$(grep -oP '\d+(?=%)' "$INDEX_HTML" | head -1)
             echo "Mutation Score: $SCORE%"
             
             # Threshold: 80% (puoi modificarlo)
             THRESHOLD=80
             
+            if [ "$SCORE" -lt "$THRESHOLD" ]; then
+              echo "❌ Mutation score $SCORE% is below threshold $THRESHOLD%"
+              exit 1
+            else
+              echo "✅ Mutation score $SCORE% meets threshold $THRESHOLD%"
+            fi
+          elif [ -f "$MUTATIONS_XML" ]; then
+            SCORE=$(grep -oP 'mutationCoverage="\K[^"]+' "$MUTATIONS_XML" | head -1)
+            echo "Mutation Score: $SCORE%"
+            THRESHOLD=80
             if (( $(echo "$SCORE < $THRESHOLD" | bc -l) )); then
               echo "❌ Mutation score $SCORE% is below threshold $THRESHOLD%"
               exit 1
