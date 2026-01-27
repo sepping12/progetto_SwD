@@ -1,16 +1,16 @@
 name: PITest - Analisi Mutation Testing
 
 on:
-  # Esecuzione manuale
+  # Esecuzione automatica su push al main
+  push:
+    branches: [ main ]
+  
+  # Esecuzione manuale (opzionale)
   workflow_dispatch:
   
-  # Esecuzione schedulata settimanale (ogni lunedì alle 3 AM)
-  schedule:
-    - cron: '0 3 * * 1'
-  
-  # Esecuzione su push al main (opzionale - commentato per evitare rallentamenti)
-  # push:
-  #   branches: [ main ]
+  # Esecuzione schedulata settimanale (ogni lunedì alle 3 AM) - commentato per evitare esecuzioni non necessarie
+  # schedule:
+  #   - cron: '0 3 * * 1'
 
 permissions:
   contents: read
