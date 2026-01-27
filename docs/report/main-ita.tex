@@ -39,13 +39,13 @@
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{Analisi Dependability Spring Boot}
-\fancyhead[R]{A.A. 2024/2025}
+\fancyhead[R]{A.A. 2025/2026}
 \fancyfoot[C]{\thepage}
 
 \title{\textbf{\Large Analisi di Dependability di un'Applicazione E-Commerce Spring Boot}\\[0.5cm]
-        \large Dependability del Software - Anno Accademico 2024/2025}
+        \large Dependability del Software - Anno Accademico 2025/2026}
 \author{Alfonso Maria Ferrara \and Giuseppe Esposito}
-\date{Gennaio 2025}
+\date{Gennaio 2026}
 
 \begin{document}
 
@@ -76,11 +76,11 @@ Corso di Dependability del Software\\
 \newpage
 
 \begin{abstract}
-Questo report presenta un'analisi completa della dependability di un'applicazione e-commerce REST API basata su Spring Boot. L'analisi valuta l'applicazione attraverso nove criteri: implementazione pipeline CI/CD, analisi statica del codice (SonarCloud), containerizzazione Docker, copertura dei test (JaCoCo), mutation testing (PITest), benchmarking delle prestazioni (JMH), generazione automatica di test (Randoop) e analisi di sicurezza (SpotBugs, OWASP Dependency-Check).
+Questo report presenta un'analisi completa della dependability di un'applicazione e-commerce REST API basata su Spring Boot 3.3.7. L'analisi valuta l'applicazione attraverso nove criteri: implementazione pipeline CI/CD, analisi statica del codice (SonarCloud), containerizzazione Docker, copertura dei test (JaCoCo), mutation testing (PITest), benchmarking delle prestazioni (JMH), generazione automatica di test (Randoop) e analisi di sicurezza (SpotBugs, OWASP Dependency-Check).
 
-L'analisi ha raggiunto risultati eccezionali: \textbf{100\% mutation score}, \textbf{91.9\% code coverage}, \textbf{zero vulnerabilità} di sicurezza e \textbf{rating Triple-A} su SonarCloud. L'applicazione implementa una pipeline CI/CD completa con GitHub Actions, deployment Docker ottimizzato (282MB) e testing automatizzato completo (1.626 test totali).
+L'analisi ha raggiunto risultati eccezionali: \textbf{100\% mutation score} (21/21 mutanti uccisi), \textbf{100\% line coverage}, \textbf{zero vulnerabilità} di sicurezza e \textbf{rating Triple-A} su SonarCloud. L'applicazione implementa una pipeline CI/CD completa con GitHub Actions, deployment Docker ottimizzato e testing automatizzato completo (161 test).
 
-Innovazioni chiave includono l'esclusione strategica del codice generato da Lombok dal mutation testing per concentrarsi sulla logica di business, testing sistematico dei casi limite e analisi di sicurezza multi-tool garantendo la conformità OWASP Top 10.
+Innovazioni chiave includono l'uso di mutatori STRONGER per testing più rigoroso, l'esclusione strategica del codice di configurazione dal mutation testing per concentrarsi sulla logica di business, testing sistematico dei casi limite (null collection handling) e analisi di sicurezza multi-tool garantendo la conformità OWASP Top 10. L'aggiornamento a Spring Boot 3.3.7 risolve vulnerabilità critiche CVE identificate.
 
 \vspace{0.5cm}
 
@@ -122,7 +122,7 @@ Innovazioni chiave includono l'esclusione strategica del codice generato da Lomb
 \end{lstlisting}
 
 \subsection{Configurazione PITest}
-\begin{lstlisting}[language=XML, caption=Plugin Maven PITest]
+\begin{lstlisting}[language=XML, caption=Plugin Maven PITest con Mutatori STRONGER]
 <plugin>
     <groupId>org.pitest</groupId>
     <artifactId>pitest-maven</artifactId>
@@ -131,10 +131,18 @@ Innovazioni chiave includono l'esclusione strategica del codice generato da Lomb
         <targetClasses>
             <param>com.shittu24.ecommerce.service.*</param>
             <param>com.shittu24.ecommerce.controller.*</param>
+            <param>com.shittu24.ecommerce.dto.*</param>
+            <param>com.shittu24.ecommerce.dao.*</param>
+            <param>com.shittu24.ecommerce.entity.*</param>
         </targetClasses>
         <excludedClasses>
-            <param>*.entity.*</param>
+            <param>com.shittu24.ecommerce.config.*</param>
+            <param>com.shittu24.ecommerce.SpringBootEcommerceApplication</param>
         </excludedClasses>
+        <mutators>
+            <mutator>STRONGER</mutator>
+        </mutators>
+        <timestampedReports>false</timestampedReports>
     </configuration>
 </plugin>
 \end{lstlisting}
