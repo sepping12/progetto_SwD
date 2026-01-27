@@ -1,4 +1,4 @@
-name: Mutation Testing
+name: PITest - Analisi Mutation Testing
 
 on:
   # Esecuzione manuale
@@ -126,6 +126,17 @@ jobs:
             
             const emoji = mutationScore >= 80 ? '🎯' : mutationScore >= 60 ? '✅' : '⚠️';
             
+            let interpretation = '';
+            if (mutationScore >= 80) {
+              interpretation = '🎯 **Excellent** - Your tests are highly effective!';
+            } else if (mutationScore >= 60) {
+              interpretation = '✅ **Good** - Tests are effective, but some improvements possible.';
+            } else if (mutationScore >= 40) {
+              interpretation = '⚠️ **Fair** - Consider strengthening your test suite.';
+            } else {
+              interpretation = '❌ **Poor** - Test suite needs significant improvements.';
+            }
+            
             const comment = `## ${emoji} Mutation Testing Results
             
 **Mutation Score**: **${mutationScore}%**
@@ -133,10 +144,7 @@ jobs:
 **Mutants Killed**: ${mutantsKilled}/${mutantsTotal}
 
 ### Interpretation
-${mutationScore >= 80 ? '🎯 **Excellent** - Your tests are highly effective!' : 
-  mutationScore >= 60 ? '✅ **Good** - Tests are effective, but some improvements possible.' :
-  mutationScore >= 40 ? '⚠️ **Fair** - Consider strengthening your test suite.' :
-  '❌ **Poor** - Test suite needs significant improvements.'}
+${interpretation}
 
 📊 View the [detailed PITest report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) in the artifacts.
 
