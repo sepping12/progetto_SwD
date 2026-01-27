@@ -1,0 +1,206 @@
+name: Mutation Testing
+
+on:
+  # Esecuzione manuale
+  workflow_dispatch:
+  
+  # Esecuzione schedulata settimanale (ogni lunedì alle 3 AM)
+  schedule:
+    - cron: '0 3 * * 1'
+  
+  # Esecuzione su push al main (opzionale - commentato per evitare rallentamenti)
+  # push:
+  #   branches: [ main ]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  mutation-testing:
+    name: PITest Mutation Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Make mvnw executable
+        run: chmod +x mvnw
+
+      - name: Cache PITest history
+        uses: actions/cache@v4
+        with:
+          path: target/pit-reports
+          key: ${{ runner.os }}-pitest-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-pitest-
+
+      - name: Run Mutation Testing
+        run: |
+          echo "🔬 Starting PITest Mutation Analysis..."
+          echo "This may take 10-15 minutes..."
+          ./mvnw -B test pitest:mutationCoverage
+        continue-on-error: false
+
+      - name: Parse Mutation Score
+        id: mutation-score
+        run: |
+          if [ -f target/pit-reports/mutations.xml ]; then
+            # Estrai mutation score dal report XML
+            SCORE=$(grep -oP 'mutationCoverage="\K[^"]+' target/pit-reports/mutations.xml | head -1)
+            echo "score=$SCORE" >> $GITHUB_OUTPUT
+            echo "✅ Mutation Score: $SCORE%"
+          else
+            echo "⚠️ Mutation report not found"
+            echo "score=N/A" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload PITest Report (HTML)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitest-mutation-report
+          path: target/pit-reports/
+          retention-days: 30
+
+      - name: Upload PITest Report (XML)
+        if: always() && hashFiles('target/pit-reports/mutations.xml') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitest-mutation-xml
+          path: target/pit-reports/mutations.xml
+          retention-days: 30
+
+      - name: Comment PR with Mutation Score
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Cerca il file index.html del report PITest
+            const reportDir = './target/pit-reports';
+            let indexFile = '';
+            
+            if (fs.existsSync(reportDir)) {
+              const files = fs.readdirSync(reportDir);
+              const dateDirs = files.filter(f => fs.statSync(path.join(reportDir, f)).isDirectory());
+              if (dateDirs.length > 0) {
+                // Prendi l'ultima directory (più recente)
+                const latestDir = dateDirs.sort().reverse()[0];
+                indexFile = path.join(reportDir, latestDir, 'index.html');
+              }
+            }
+            
+            let mutationScore = 'N/A';
+            let mutantsKilled = 0;
+            let mutantsTotal = 0;
+            
+            if (fs.existsSync(indexFile)) {
+              const content = fs.readFileSync(indexFile, 'utf8');
+              
+              // Estrai mutation score
+              const scoreMatch = content.match(/(\d+)%\s+<\/h2>/);
+              if (scoreMatch) {
+                mutationScore = scoreMatch[1];
+              }
+              
+              // Estrai numero mutanti
+              const statsMatch = content.match(/(\d+)\/(\d+)/);
+              if (statsMatch) {
+                mutantsKilled = statsMatch[1];
+                mutantsTotal = statsMatch[2];
+              }
+            }
+            
+            const emoji = mutationScore >= 80 ? '🎯' : mutationScore >= 60 ? '✅' : '⚠️';
+            
+            const comment = `## ${emoji} Mutation Testing Results
+            
+**Mutation Score**: **${mutationScore}%**
+
+**Mutants Killed**: ${mutantsKilled}/${mutantsTotal}
+
+### Interpretation
+${mutationScore >= 80 ? '🎯 **Excellent** - Your tests are highly effective!' : 
+  mutationScore >= 60 ? '✅ **Good** - Tests are effective, but some improvements possible.' :
+  mutationScore >= 40 ? '⚠️ **Fair** - Consider strengthening your test suite.' :
+  '❌ **Poor** - Test suite needs significant improvements.'}
+
+📊 View the [detailed PITest report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) in the artifacts.
+
+---
+*Mutation testing evaluates test quality by introducing artificial bugs and checking if tests catch them.*
+            `;
+            
+            if (context.payload.pull_request) {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+
+      - name: Create Job Summary
+        if: always()
+        run: |
+          echo "## 🔬 Mutation Testing Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f target/pit-reports/mutations.xml ]; then
+            SCORE=$(grep -oP 'mutationCoverage="\K[^"]+' target/pit-reports/mutations.xml | head -1)
+            echo "### Mutation Score: **${SCORE}%**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Aggiungi interpretazione
+            if (( $(echo "$SCORE >= 80" | bc -l) )); then
+              echo "🎯 **Excellent** - Your tests are highly effective!" >> $GITHUB_STEP_SUMMARY
+            elif (( $(echo "$SCORE >= 60" | bc -l) )); then
+              echo "✅ **Good** - Tests are effective." >> $GITHUB_STEP_SUMMARY
+            elif (( $(echo "$SCORE >= 40" | bc -l) )); then
+              echo "⚠️ **Fair** - Consider strengthening your test suite." >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **Poor** - Test suite needs improvements." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⚠️ Mutation report not generated" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Report Available" >> $GITHUB_STEP_SUMMARY
+          echo "Download the detailed PITest report from the artifacts section above." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Mutation testing introduces artificial bugs to verify test effectiveness.*" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if Mutation Score Below Threshold
+        if: success()
+        run: |
+          if [ -f target/pit-reports/mutations.xml ]; then
+            SCORE=$(grep -oP 'mutationCoverage="\K[^"]+' target/pit-reports/mutations.xml | head -1)
+            echo "Mutation Score: $SCORE%"
+            
+            # Threshold: 80% (puoi modificarlo)
+            THRESHOLD=80
+            
+            if (( $(echo "$SCORE < $THRESHOLD" | bc -l) )); then
+              echo "❌ Mutation score $SCORE% is below threshold $THRESHOLD%"
+              exit 1
+            else
+              echo "✅ Mutation score $SCORE% meets threshold $THRESHOLD%"
+            fi
+          else
+            echo "⚠️ No mutation report found, skipping threshold check"
+          fi
