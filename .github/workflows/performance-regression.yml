@@ -43,8 +43,12 @@ jobs:
           echo "🏎️ Running JMH Performance Benchmarks..."
           echo "This may take 10-20 minutes depending on benchmark complexity..."
           
-          # Esegui i benchmark JMH
-          ./mvnw -B test -Dtest=com.shittu24.ecommerce.benchmark.**
+          # Compila test-classes per JMH
+          ./mvnw -B test-compile
+          
+          # Esegui i benchmark JMH con exec plugin
+          # JMH output will be printed to console
+          ./mvnw -B exec:exec@run-benchmarks 2>&1 | tee jmh-output.txt
         continue-on-error: false
 
       - name: Parse Benchmark Results
@@ -52,16 +56,17 @@ jobs:
         run: |
           echo "📊 Parsing JMH benchmark results..."
           
-          # Cerca file di output JMH
-          if [ -d "target/jmh-result" ]; then
+          # Verifica se l'output esiste
+          if [ -f "jmh-output.txt" ]; then
             echo "results_found=true" >> $GITHUB_OUTPUT
-            echo "✅ Benchmark results found"
-          elif [ -f "jmh-result.json" ]; then
-            echo "results_found=true" >> $GITHUB_OUTPUT
-            echo "✅ Benchmark results found in root"
+            echo "✅ Benchmark output captured"
+            
+            # Estrai summary dei risultati
+            echo "=== JMH Benchmark Summary ===" >> jmh-summary.txt
+            grep -E "(Benchmark|Score|Mode)" jmh-output.txt >> jmh-summary.txt || echo "No benchmark data found" >> jmh-summary.txt
           else
             echo "results_found=false" >> $GITHUB_OUTPUT
-            echo "⚠️ No benchmark results found (may need to check output)"
+            echo "⚠️ No benchmark output found"
           fi
 
       - name: Extract Performance Metrics
@@ -69,21 +74,20 @@ jobs:
         run: |
           echo "📈 Extracting performance metrics..."
           
-          # Cerca tutti i file surefire-reports per i benchmark
-          if [ -d "target/surefire-reports" ]; then
-            echo "Found test reports in target/surefire-reports/"
-            ls -la target/surefire-reports/
+          # Mostra summary
+          if [ -f "jmh-summary.txt" ]; then
+            echo "=== Performance Metrics ==="
+            cat jmh-summary.txt
           fi
 
       - name: Upload Benchmark Results
-        if: always()
+        if: steps.parse-results.outputs.results_found == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: jmh-benchmark-results
           path: |
-            target/surefire-reports/
-            target/jmh-result/
-            jmh-result.json
+            jmh-output.txt
+            jmh-summary.txt
           retention-days: 30
         continue-on-error: true
 
