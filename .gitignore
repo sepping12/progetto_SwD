@@ -32,3 +32,22 @@ build/
 ### VS Code ###
 .vscode/
 
+### Documentation Markdown (internal/temporary) ###
+# Keep only: README.md, roadmap.md, docs/**/*.md
+CI_CD_*.md
+CRITERION_*.md
+DEPLOYMENT_*.md
+GITHUB_*.md
+JMH_*.md
+JML_*.md
+NVD_*.md
+PITEST_*.md
+PROGETTO_*.md
+SECTION*.md
+SECURITY_*.md
+SPOTBUGS_*.md
+TEST_*.md
+VERIFICATION_*.md
+VULNERABILITY_*.md
+README_CI_CD_INDEX.md
+
