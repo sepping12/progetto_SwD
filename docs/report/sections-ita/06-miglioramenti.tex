@@ -122,29 +122,54 @@ OWASP Dependency-Check & Vulnerabilità supply chain (dipendenze) \\
 
 \subsubsection{Specializzazione Workflow}
 
-\textbf{Strategia}: Separazione concerns in quattro workflow specializzati
+\textbf{Strategia}: Separazione concerns in sei workflow specializzati con orchestrazione
 
 \begin{table}[htbp]
 \centering
 \caption{Strategia Specializzazione Workflow}
 \label{tab:workflow-spec}
-\begin{tabular}{llp{6cm}}
+\begin{tabular}{llp{5.5cm}}
 \toprule
 \textbf{Workflow} & \textbf{Frequenza} & \textbf{Scopo} \\
 \midrule
-\texttt{maven.yml} & Ogni push/PR & Feedback veloce (build, test, coverage) \\
-\texttt{docker-build.yml} & Push main & Creazione immagine produzione \\
-\texttt{maven-schedule.yml} & Daily 00:00 UTC & Monitoring qualità proattivo \\
-\texttt{mutation-testing.yml} & Weekly & Analisi profonda qualità test \\
+\texttt{ci.yml} & Ogni push/PR & Build, test, coverage rapidi \\
+\texttt{build.yml} & Push main & Creazione immagine produzione \\
+\texttt{security.yml} & Push/PR/Weekly & 7 tool security scanning \\
+\texttt{mutation-testing.yml} & Push/Manual & Analisi qualità test \\
+\texttt{performance-regression.yml} & Weekly/Manual & Monitoraggio performance \\
+\texttt{pipeline-orchestrator.yml} & Push/Manual & Esecuzione sequenziale coordinata \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \textbf{Impatto}:
 \begin{itemize}
-    \item Feedback loop 10x più veloce (45s vs 15min con mutation)
+    \item Feedback loop CI veloce: 7 minuti (build + coverage + SonarCloud)
+    \item Security completo: 16 minuti con 7 tool specializzati
+    \item Orchestrazione totale: 40 minuti per analisi completa
     \item 100\% build success rate
     \item Zero incident produzione
+\end{itemize}
+
+\subsubsection{Pipeline Orchestrator}
+
+\textbf{Innovazione}: Workflow centrale che coordina l'esecuzione sequenziale di tutti gli altri workflow.
+
+\textbf{Architettura}:
+\begin{enumerate}
+    \item Esecuzione CI pipeline (build + test + coverage)
+    \item Attesa completamento e build Docker
+    \item Security scan completo (7 tool)
+    \item Mutation testing con PITest
+    \item Performance regression testing con JMH
+\end{enumerate}
+
+\textbf{Vantaggi}:
+\begin{itemize}
+    \item Gestione dipendenze tra workflow
+    \item Summary unificato dell'intera analisi
+    \item Trigger singolo per esecuzione completa
+    \item Facilita debugging con visione d'insieme
 \end{itemize}
 
 \subsubsection{Strategia Caching}

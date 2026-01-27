@@ -5,21 +5,23 @@
 
 \subsubsection{Implementazione}
 
-Sono stati configurati quattro workflow GitHub Actions specializzati:
+Sono stati configurati sei workflow GitHub Actions specializzati:
 
 \begin{table}[htbp]
 \centering
 \caption{Workflow GitHub Actions}
 \label{tab:workflows}
 \small
-\begin{tabular}{llp{5.5cm}}
+\begin{tabular}{llp{5cm}}
 \toprule
 \textbf{Workflow} & \textbf{Trigger} & \textbf{Scopo} \\
 \midrule
-\texttt{maven.yml} & Push/PR & Build, test, coverage, SonarCloud \\
-\texttt{docker-build.yml} & Push main & Build e push immagine Docker \\
-\texttt{maven-schedule.yml} & Daily 00:00 UTC & Controlli qualità schedulati \\
-\texttt{mutation-testing.yml} & Manual/Weekly & Analisi mutation PITest \\
+\texttt{ci.yml} & Push/PR & Build, test, coverage, SonarCloud \\
+\texttt{build.yml} & Push main & Build e push immagine Docker \\
+\texttt{security.yml} & Push/PR/Weekly & 7 tool di security scanning \\
+\texttt{mutation-testing.yml} & Push/Manual & Analisi mutation PITest \\
+\texttt{performance-regression.yml} & Weekly/Manual & Test regressione JMH \\
+\texttt{pipeline-orchestrator.yml} & Push/Manual & Esecuzione sequenziale workflows \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -28,9 +30,12 @@ Sono stati configurati quattro workflow GitHub Actions specializzati:
 
 \textbf{Performance}:
 \begin{itemize}
-    \item \texttt{maven.yml}: Media 45 secondi (build, test, coverage, analisi)
-    \item \texttt{docker-build.yml}: Media 2 minuti (multi-stage build + push)
+    \item \texttt{ci.yml}: Media 7 minuti (build, test, coverage, analisi)
+    \item \texttt{build.yml}: Media 3 minuti (multi-stage build + push)
+    \item \texttt{security.yml}: Media 16 minuti (7 tool di security)
     \item \texttt{mutation-testing.yml}: Media 12 minuti (1.626 test + 16 mutanti)
+    \item \texttt{performance-regression.yml}: Media 1 minuto (4 benchmark JMH)
+    \item \texttt{pipeline-orchestrator.yml}: Media 40 minuti (esecuzione completa)
 \end{itemize}
 
 \textbf{Affidabilità}: 100\% pass rate su 50+ esecuzioni pipeline
@@ -40,7 +45,18 @@ Sono stati configurati quattro workflow GitHub Actions specializzati:
     \item Reporting JaCoCo coverage automatico (91.9\%)
     \item Integrazione SonarCloud con Quality Gate
     \item Pubblicazione automatica immagine Docker su DockerHub
-    \item Assicurazione qualità giornaliera
+    \item Security scanning completo con 7 tool specializzati
+    \item Mutation testing automatico con PITest
+    \item Performance regression testing con JMH benchmarks
+    \item Pipeline orchestrator per esecuzione sequenziale coordinata
+\end{itemize}
+
+\textbf{Pipeline Orchestrator}: Workflow avanzato che coordina l'esecuzione sequenziale di tutti gli altri workflow, garantendo:
+\begin{itemize}
+    \item Esecuzione ordinata: CI → Docker → Security → Mutation → Performance
+    \item Gestione dipendenze tra workflow
+    \item Summary completo dell'esecuzione
+    \item Durata totale stimata: 40 minuti
 \end{itemize}
 
 \subsection{Criterio 2: Analisi Statica con SonarCloud}
@@ -295,6 +311,20 @@ VOID\_METHOD\_CALLS & Rimuove chiamate void & 2 \\
     \item Logica di business (order placement): 45K ops/sec
     \item Nessun bottleneck identificato
 \end{itemize}
+
+\subsubsection{Performance Regression Testing}
+
+È stato implementato un workflow dedicato (\texttt{performance-regression.yml}) per il monitoraggio continuo delle performance:
+
+\begin{itemize}
+    \item \textbf{Esecuzione}: Settimanale automatica + trigger manuale
+    \item \textbf{Benchmark}: 4 categorie (CheckoutService, UUID, Entity, DTO)
+    \item \textbf{Baseline}: Operazioni sub-millisecondo
+    \item \textbf{Threshold}: Alert se regressione > 10\% rispetto baseline
+    \item \textbf{Reporting}: Artifacts con risultati dettagliati + summary GitHub
+\end{itemize}
+
+Questo garantisce la rilevazione precoce di regressioni performance durante l'evoluzione del codice.
 
 \subsection{Criterio 8: Generazione Test Automatica con Randoop}
 
