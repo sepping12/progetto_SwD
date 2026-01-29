@@ -1,0 +1,5 @@
+version: 2
+
+paths-ignore:
+  - "docs/report/sections/06-improvements.tex"
+  - "docs/report/**/*.tex"
