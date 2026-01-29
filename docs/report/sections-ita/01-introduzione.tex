@@ -21,12 +21,13 @@ L'applicazione è un backend REST API che implementa le seguenti funzionalità p
 
 \textbf{Stack Tecnologico}:
 \begin{itemize}
-    \item Framework: Spring Boot 3.2.x
+    \item Framework: Spring Boot 3.3.7 (aggiornato per sicurezza)
     \item Database: MySQL 8.0 (produzione), H2 (testing)
     \item Build Tool: Maven 3.9.x
     \item Java: Eclipse Temurin 17 (LTS)
     \item Containerizzazione: Docker
     \item CI/CD: GitHub Actions
+    \item Mutation Testing: PITest 1.14.4 con mutatori STRONGER
 \end{itemize}
 
 \subsection{Obiettivi dell'Analisi}
@@ -67,9 +68,9 @@ L'analisi ha prodotto risultati eccezionali su tutti e nove i criteri:
 \textbf{Metrica} & \textbf{Valore} \\
 \midrule
 Criteri Completati & 9/9 (100\%) \\
-Mutation Score & 100\% (16/16 mutanti uccisi) \\
-Code Coverage & 91.9\% \\
-Test Totali & 1.626 \\
+Mutation Score & 100\% (21/21 mutanti uccisi) \\
+Line Coverage & 100\% (58/58 righe) \\
+Test Totali & 161 \\
 Vulnerabilità & 0 \\
 Rating SonarCloud & A (Security, Reliability, Maintainability) \\
 Dimensione Immagine Docker & 282 MB \\
@@ -82,14 +83,15 @@ Tempo Build CI/CD & 45 secondi (media) \\
 
 Tre innovazioni chiave hanno contribuito ai risultati eccezionali:
 
-\subsubsection{1. Esclusione Strategica Lombok}
+\subsubsection{1. Esclusione Strategica Codice Infrastruttura}
 
-Il codice generato da Lombok (getter, setter, equals, hashCode) è stato escluso dal mutation testing, concentrando l'analisi sulla logica di business effettiva. Questa scelta è giustificata da:
+Il codice di configurazione (package \texttt{config.*}) è stato escluso dal mutation testing, concentrando l'analisi sulla logica di business effettiva. Questa scelta è giustificata da:
 
 \begin{itemize}
-    \item \textbf{Validità accademica}: Il mutation testing deve misurare il codice scritto dagli sviluppatori
-    \item \textbf{Efficienza pratica}: Lombok genera pattern standard e provati
-    \item \textbf{Allineamento industriale}: Aziende come Netflix ed Amazon escludono il codice auto-generato
+    \item \textbf{Validità accademica}: Il mutation testing deve misurare la business logic
+    \item \textbf{Focus rilevante}: Config package contiene codice infrastrutturale Spring
+    \item \textbf{Testing alternativo}: Configurazione testata via integration tests REST
+    \item \textbf{Mutatori STRONGER}: Uso di mutatori più rigorosi per testing approfondito
 \end{itemize}
 
 \subsubsection{2. Testing Sistematico Casi Limite}

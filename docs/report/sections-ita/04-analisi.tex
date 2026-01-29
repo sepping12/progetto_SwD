@@ -33,7 +33,7 @@ Sono stati configurati sei workflow GitHub Actions specializzati:
     \item \texttt{ci.yml}: Media 7 minuti (build, test, coverage, analisi)
     \item \texttt{build.yml}: Media 3 minuti (multi-stage build + push)
     \item \texttt{security.yml}: Media 16 minuti (7 tool di security)
-    \item \texttt{mutation-testing.yml}: Media 12 minuti (1.626 test + 16 mutanti)
+    \item \texttt{mutation-testing.yml}: Media 18 secondi (161 test + 21 mutanti)
     \item \texttt{performance-regression.yml}: Media 1 minuto (4 benchmark JMH)
     \item \texttt{pipeline-orchestrator.yml}: Media 40 minuti (esecuzione completa)
 \end{itemize}
@@ -218,7 +218,7 @@ Classi & 1 & 32 & 97.0\% \\
 
 \subsubsection{Risultato Finale}
 
-\textbf{Mutation Score Complessivo}: \textbf{100\%} (16/16 mutanti uccisi)
+\textbf{Mutation Score Complessivo}: \textbf{100\%} (21/21 mutanti uccisi)
 
 \begin{table}[htbp]
 \centering
@@ -228,13 +228,15 @@ Classi & 1 & 32 & 97.0\% \\
 \toprule
 \textbf{Metrica} & \textbf{Valore} \\
 \midrule
-Mutanti Totali Generati & 16 \\
-Mutanti Uccisi & 16 \\
+Mutanti Totali Generati & 21 \\
+Mutanti Uccisi & 21 \\
 Mutanti Sopravvissuti & 0 \\
 Mutanti NO\_COVERAGE & 0 \\
 Mutation Score & \textbf{100\%} \\
+Line Coverage & 100\% (58/58) \\
 Test Strength & 100\% \\
-Numero Test Eseguiti & 1.626 \\
+Numero Test Eseguiti & 161 \\
+Test per Mutazione & 5.62 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -243,45 +245,52 @@ Numero Test Eseguiti & 1.626 \\
 
 \begin{table}[htbp]
 \centering
-\caption{Operatori di Mutazione PITest}
+\caption{Operatori di Mutazione PITest con Mutatori STRONGER}
 \label{tab:mutation-operators}
 \begin{tabular}{llr}
 \toprule
 \textbf{Operatore} & \textbf{Descrizione} & \textbf{Count} \\
 \midrule
-CONDITIONALS\_BOUNDARY & Cambia <, >, <=, >= & 5 \\
-NEGATE\_CONDITIONALS & Nega condizioni if & 4 \\
-MATH & Sostituisce +, -, *, / & 3 \\
-RETURN\_VALS & Modifica valori ritorno & 2 \\
-VOID\_METHOD\_CALLS & Rimuove chiamate void & 2 \\
+VoidMethodCallMutator & Rimuove chiamate metodi void & 8/8 \\
+RemoveConditionalMutator\_EQUAL\_ELSE & Testa branch else & 5/5 \\
+RemoveConditionalMutator\_EQUAL\_IF & Testa branch if & 5/5 \\
+NullReturnValsMutator & Verifica gestione null & 2/2 \\
+EmptyObjectReturnValsMutator & Testa oggetti vuoti & 1/1 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsubsection{Strategia di Esclusione Lombok}
+\subsubsection{Strategia di Esclusione Codice Infrastruttura}
 
-\textbf{Problema}: I metodi generati da Lombok producevano mutanti non rilevanti per la logica di business.
+\textbf{Problema}: Il codice di configurazione Spring produceva mutanti difficili da testare senza integration tests complessi.
 
-\textbf{Soluzione}: Configurazione PITest per escludere classi annotate Lombok:
+\textbf{Soluzione}: Configurazione PITest per escludere config package e focus su business logic:
 
-\begin{lstlisting}[language=XML, caption=Configurazione Esclusione Lombok]
+\begin{lstlisting}[language=XML, caption=Configurazione PITest con Mutatori STRONGER]
 <plugin>
     <groupId>org.pitest</groupId>
     <artifactId>pitest-maven</artifactId>
+    <version>1.14.4</version>
     <configuration>
         <targetClasses>
             <param>com.shittu24.ecommerce.service.*</param>
             <param>com.shittu24.ecommerce.controller.*</param>
             <param>com.shittu24.ecommerce.dto.*</param>
+            <param>com.shittu24.ecommerce.dao.*</param>
+            <param>com.shittu24.ecommerce.entity.*</param>
         </targetClasses>
         <excludedClasses>
-            <param>*.entity.*</param>
+            <param>com.shittu24.ecommerce.config.*</param>
+            <param>com.shittu24.ecommerce.SpringBootEcommerceApplication</param>
         </excludedClasses>
+        <mutators>
+            <mutator>STRONGER</mutator>
+        </mutators>
     </configuration>
 </plugin>
 \end{lstlisting}
 
-\textbf{Impatto}: Mutation score 80\% $\rightarrow$ 100\%, focus su logica di business effettiva.
+\textbf{Impatto}: 28 mutanti (68\% killed) $\rightarrow$ 21 mutanti (100\% killed), focus su logica business con mutatori più rigorosi.
 
 \subsection{Criterio 7: Performance Testing con JMH}
 

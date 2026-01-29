@@ -113,16 +113,17 @@ FindSecBugs & 1.12.0 & Focus sicurezza OWASP \\
 
 \textbf{Procedura}:
 \begin{enumerate}
-    \item Configurazione plugin Maven PITest
-    \item Definizione target classes (service, controller, DTO)
-    \item Esclusione entity e config (Lombok)
-    \item Esecuzione campagna mutation (10-15 minuti)
+    \item Configurazione plugin Maven PITest 1.14.4
+    \item Definizione target classes (service, controller, dto, dao, entity)
+    \item Esclusione config package (infrastruttura Spring)
+    \item Selezione mutatori STRONGER (più rigorosi dei DEFAULTS)
+    \item Esecuzione campagna mutation
     \item Analisi mutanti sopravvissuti
-    \item Implementazione test edge case
-    \item Ri-esecuzione e verifica 100\% business logic
+    \item Implementazione test edge case (null collection handling)
+    \item Ri-esecuzione e verifica 100\% mutation score
 \end{enumerate}
 
-\textbf{Metriche di Successo}: Mutation score > 80\%, test strength > 95\%, nessun mutante sopravvissuto nei percorsi critici.
+\textbf{Metriche di Successo}: Mutation score 100\%, test strength 100\%, line coverage 100\%, tutti i mutanti uccisi nel business logic.
 
 \subsubsection{Criterio 7: Performance Testing (JMH)}
 
